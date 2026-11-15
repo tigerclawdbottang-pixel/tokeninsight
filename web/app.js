@@ -1399,9 +1399,24 @@ function renderStatus() {
   for (const s of SRC) {
     const r = (D.runs || []).find(x => x.source === s.id) || {};
     const ok = r.status === 'ok';
-    h += `<div class="card"><h3><span class="dotst ${ok ? 'ok' : 'bad'}"></span>${esc(s.label)}</h3>
-      <div class="big">${r.kept ?? '—'}<span style="font-size:13px;color:var(--tx3)"> 个模型</span></div>
-      <div class="sm">${ok ? '采集成功' : '采集失败：' + esc(r.message || '未知')}</div>
+    // 检查该源在当前数据中的实际模型数（build_site 已按「每源最新有数据日期」处理）
+    const actualCount = D.models.filter(m => m.prices[s.id]).length;
+    const hasData = actualCount > 0;
+    // 状态显示：如果今天失败但有历史数据，显示「使用历史数据」而不是「0 个模型」
+    let statusText, statusClass;
+    if (ok) {
+      statusText = '采集成功';
+      statusClass = 'ok';
+    } else if (hasData) {
+      statusText = `今日失败，使用历史数据 (${actualCount} 个)`;
+      statusClass = 'ok';
+    } else {
+      statusText = '采集失败：' + esc(r.message || '未知');
+      statusClass = 'bad';
+    }
+    h += `<div class="card"><h3><span class="dotst ${statusClass}"></span>${esc(s.label)}</h3>
+      <div class="big">${hasData ? actualCount : (r.kept ?? '—')}<span style="font-size:13px;color:var(--tx3)"> 个模型</span></div>
+      <div class="sm">${statusText}</div>
       <div class="sm" style="margin-top:6px">${esc(s.note)}</div>
       <div class="sm" style="margin-top:6px"><a href="${esc(s.url)}" target="_blank" rel="noopener">访问官网 ↗</a></div></div>`;
   }
