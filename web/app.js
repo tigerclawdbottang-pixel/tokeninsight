@@ -420,7 +420,7 @@ function renderTop10Table(el, top, metric) {
   const fmt = v => v == null ? '—' : (isDisc ? v.toFixed(0) + '%' : priceFixed(v));
   let h = '<table><thead><tr><th class="l">#</th><th class="l">模型</th><th class="l">厂商</th>';
   for (const sid of SRCIDS) h += `<th>${esc(srcLabel(sid))}</th>`;
-  h += '<th>最低</th><th>最高</th><th>价差</th></tr></thead><tbody>';
+  h += '<th>最低</th><th>最高</th></tr></thead><tbody>';
   top.forEach((m, idx) => {
     const vals = SRCIDS.map(sid => valOf(m, sid, metric)).filter(v => v != null);
     const mn = vals.length ? Math.min(...vals) : null;
@@ -437,8 +437,7 @@ function renderTop10Table(el, top, metric) {
       else if (vals.length > 1 && v === mx) cls = 'hl3';
       h += `<td class="${cls}">${fmt(v)}</td>`;
     }
-    h += `<td class="hl2">${fmt(mn)}</td><td class="hl3">${fmt(mx)}</td>` +
-      `<td>${(mn != null && mx != null && mn > 0 && mx > mn) ? ((mx / mn - 1) * 100).toFixed(0) + '%' : '—'}</td></tr>`;
+    h += `<td class="hl2">${fmt(mn)}</td><td class="hl3">${fmt(mx)}</td></tr>`;
   });
   h += '</tbody></table>';
   el.innerHTML = h;
