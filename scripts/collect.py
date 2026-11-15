@@ -128,13 +128,14 @@ def detect_variant(model_id: str, family: str):
 
 def f(x):
     """安全转 float；None/''/'-1'/非数字 -> None。
-    兼容千分位 1,234.56 与欧式小数 0,28（=0.28，不能抹成 028）。"""
+    兼容千分位 1,234.56 与欧式小数 0,28（=0.28，不能抹成 028）。
+    也兼容 markdown 转义 `\$1.25`（venice 文档的写法）。"""
     if x is None:
         return None
     if isinstance(x, (int, float)):
         v = float(x)
         return None if v < 0 else v
-    s = str(x).strip().replace("$", "").replace("¥", "").replace("￥", "")
+    s = str(x).strip().lstrip("\\").replace("$", "").replace("¥", "").replace("￥", "")
     if s in ("", "-", "N/A", "None", "null"):
         return None
     m = re.match(r"-?\d[\d.,]*", s)
@@ -716,8 +717,8 @@ def collect_string():
 # 加一个新的「表格式定价」网关源，只需在这里加一行，采集器会在下面自动注册。
 GATEWAY_SOURCES = {
     "venice": [
-        "https://raw.githubusercontent.com/veniceai/api-docs/main/overview/pricing.mdx",
-        "https://raw.githubusercontent.com/veniceai/api-docs/master/overview/pricing.mdx",
+        "https://docs.venice.ai/models/overview.md",
+        "https://docs.venice.ai/models/overview",
         "https://docs.venice.ai/overview/pricing.md",
         "https://docs.venice.ai/overview/pricing",
     ],
