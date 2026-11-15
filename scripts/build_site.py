@@ -306,8 +306,20 @@ def main():
         return 1
     latest = dates[-1]
 
+    # 每个源用自己的「最新有数据日期」——避免某源今天采集失败导致整列消失
+    # 比如 Fireworks 今天 HTTP 500，但昨天有 318 条，应该用昨天的
+    src_latest = {}
+    for r in c.execute("SELECT source, MAX(snapshot_date) d FROM prices GROUP BY source"):
+        src_latest[r["source"]] = r["d"]
+
     # ---------- 最新版本：按 loose 聚合 ----------
-    rows = c.execute("""SELECT * FROM prices WHERE snapshot_date=? ORDER BY loose, source, input""", (latest,)).fetchall()
+    # 按 (loose, source, 该源最新日期) 取数据，而不是全局统一日期
+    rows = []
+    for src, d in src_latest.items():
+        rows.extend(c.execute(
+            "SELECT * FROM prices WHERE snapshot_date=? AND source=? ORDER BY loose, input",
+            (d, src)).fetchall())
+    rows.sort(key=lambda r: (r["loose"], r["source"], r["input"] or 1e18))
     groups = defaultdict(lambda: {"by_source": {}, "names": {}, "vendors": {}, "modality": "", "alias": set()})
     for r in rows:
         g = groups[r["loose"]]
