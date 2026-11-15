@@ -644,7 +644,68 @@ def _collect_siliconflow_cn():
     return out, len(data), dict(rate=rate, fxsrc=fxsrc)
 
 
-# ------------------------------------------------------------ 6. Venice AI / 7. NEAR AI Cloud
+# ------------------------------------------------------------ 6. String AI
+# String AI 是 Astro SSR 站点，但提供了干净的公开 API：/api/v1/public/pricing
+# 返回 9 个供应商的 model_pricing_sections，每行含完整 token 计价 + 缓存价 + 阶梯价。
+# 字段说明：effective_* 是应用了 price_multiplier 后的实付价（用户实际支付）。
+# 我们用 effective_*（实付价）而不是基础价，因为比价站点要展示用户实际花的钱。
+def string_row(row, source_name):
+    """String AI row -> 标准 row。
+    models 是数组（同价的多个模型），display_names 给每个模型的中文显示名。
+    """
+    models = row.get("models") or []
+    disp = row.get("display_names") or {}
+    if not models:
+        return []
+    # 用 effective_*（实付价），fallback 到基础价
+    inp = f(row.get("effective_input_usd_per_mtok") or row.get("input_usd_per_mtok"))
+    outp = f(row.get("effective_output_usd_per_mtok") or row.get("output_usd_per_mtok"))
+    cr = f(row.get("effective_cache_read_usd_per_mtok") or row.get("cache_read_usd_per_mtok"))
+    cw = f(row.get("effective_cache_write_usd_per_mtok") or row.get("cache_write_usd_per_mtok"))
+    mult = f(row.get("price_multiplier"))
+    if inp is None and outp is None:
+        return []
+    out = []
+    for m in models:
+        model_id = m.lower()
+        fam, ver = canonical(model_id)
+        # 优先用 String AI 的中文显示名，没有再退回英文 id
+        name = disp.get(m) or m
+        out.append(dict(
+            source="string",
+            model_id=model_id,
+            model_name=name,
+            family=fam, version=ver,
+            provider=source_name,
+            input=inp, output=outp,
+            cache_read=cr, cache_write=cw,
+            list_input=None, list_output=None,
+            discount=(round((1 - mult) * 100, 2) if mult else None),
+            context=None, modality="text",
+            unit="token", unit_price=None, list_unit_price=None, unit_discount=None,
+        ))
+    return out
+
+
+def collect_string():
+    raw = fetch("https://www.string.ink/api/v1/public/pricing")
+    data = json.loads(raw)
+    if data.get("code") != 0:
+        raise RuntimeError(f"string: API code={data.get('code')} message={data.get('message')}")
+    sections = (data.get("data") or {}).get("model_pricing_sections") or []
+    if not sections:
+        raise RuntimeError("string: 未找到 model_pricing_sections")
+    out = []
+    for s in sections:
+        source_name = s.get("source_name") or ""
+        for r in (s.get("rows") or []):
+            out.extend(string_row(r, source_name))
+    if not out:
+        raise RuntimeError("string: 所有 sections 都没解析出模型")
+    return out, len(out)
+
+
+# ------------------------------------------------------------ 7. Venice AI / 8. NEAR AI Cloud
 # 两个独立定价网关，官方页都提供 markdown 价格表（USD / 1M tokens），结构略有差异，
 # 用「表头关键字检测」统一解析，不依赖列顺序。
 #   Venice: docs.venice.ai/overview/pricing.md
@@ -839,6 +900,7 @@ COLLECTORS = {
     "wokey": collect_wokey,
     "cheaperinference": collect_cheaperinference,
     "siliconflow": collect_siliconflow,
+    "string": collect_string,
 }
 
 # 表格式网关源：从 GATEWAY_SOURCES 自动注册采集器

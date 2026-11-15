@@ -99,6 +99,8 @@ SOURCES = [
      "color": "#F59E0B", "note": "隐私网关，匿名化推理，独立定价"},
     {"id": "nearai",           "label": "NEAR AI Cloud",      "url": "https://near.ai/pricing",
      "color": "#14B8A6", "note": "TEE 可信执行环境，独立定价"},
+    {"id": "string",           "label": "String AI",          "url": "https://www.string.ink/zh-cn/pricing/",
+     "color": "#0EA5E9", "note": "国内中转站，含缓存读/写、阶梯价、实测可用率"},
 ]
 
 FX_FILE = os.path.join(ROOT, "data", "fx.json")
