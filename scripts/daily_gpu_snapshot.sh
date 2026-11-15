@@ -36,10 +36,20 @@ if git diff --cached --quiet; then
 else
   git -c user.name="tigertang" -c user.email="[EMAIL_REDACTED]" \
       commit -m "GPU 现货快照更新 $(date +%F)"
-  if git push origin HEAD 2>&1; then
-    echo "已推送"
-  else
-    echo "⚠️ 推送失败（沙箱无 git 凭据或网络未放行）——已本地提交，请在本机终端 git push"
-  fi
+fi
+# Actions 机器人每天在 main 上有自动提交，推送前先 rebase；
+# 生成物（web/data.json、reports/）若冲突一律取远端（Actions 会重建）
+git fetch origin main 2>/dev/null || true
+if ! git merge-base --is-ancestor origin/main HEAD 2>/dev/null; then
+  git pull --rebase origin main || {
+    git checkout --theirs web/data.json reports/ 2>/dev/null || true
+    git add -A
+    git rebase --continue || git rebase --abort
+  }
+fi
+if git push origin HEAD 2>&1; then
+  echo "已推送"
+else
+  echo "⚠️ 推送失败（沙箱无 git 凭据或网络未放行）——已本地提交，请在本机终端 git push"
 fi
 echo "== 完成 =="
