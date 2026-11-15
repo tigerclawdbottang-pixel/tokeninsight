@@ -1439,6 +1439,7 @@ function switchTab(t) {
   if (t === 'trend') renderTrend();
   if (t === 'status') renderStatus();
   if (t === 'gpu') renderGpu();
+  if (t === 'gpuroi') renderGpuRoi();
   if (t === 'gpsocial') renderGpuSocial();
 }
 function init() {

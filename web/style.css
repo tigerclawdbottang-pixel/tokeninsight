@@ -359,3 +359,27 @@ footer{display:flex;flex-direction:column;gap:6px;align-items:center;color:var(-
 @media(prefers-reduced-motion:reduce){
   *{transition:none!important;animation:none!important;scroll-behavior:auto!important}
 }
+
+/* ---------- GPU 收益测算 pane（#p-gpuroi） ---------- */
+.gpu-chips{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px}
+.gpu-chip{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r-sm);padding:8px 14px;font-size:12px;display:flex;gap:8px;align-items:baseline}
+.gpu-chip b{font-family:var(--mono)}
+.gpu-chip .dim{font-size:11px}
+.plat-tip{position:fixed;z-index:90;background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r-sm);padding:10px 12px;font-size:11.5px;box-shadow:0 8px 30px rgba(0,0,0,.45);pointer-events:none;min-width:200px}
+.plat-tip .pt-t{font-weight:700;margin-bottom:6px;color:var(--tx)}
+.plat-tip .pt-r{display:flex;justify-content:space-between;gap:14px;padding:2px 0;font-family:var(--mono);color:var(--tx2)}
+.plat-tip .pt-r b{color:var(--acc2);font-weight:600}
+#roi-tbl th{cursor:pointer;user-select:none}
+td.stk{cursor:help}
+/* 中文财经配色，仅本 pane：红盈绿亏（覆盖全站绿涨红跌） */
+#p-gpuroi .pos{color:var(--hi)}
+#p-gpuroi .neg{color:var(--lo)}
+#p-gpuroi .pill.lo{background:var(--hi-bg);color:var(--hi);border-color:var(--hi-bd)}
+#p-gpuroi .pill.hi{background:var(--lo-bg);color:var(--lo);border-color:var(--lo-bd)}
+/* ROI 表格紧凑化：保证 15 列在页面宽度内 */
+#roi-tbl td, #roi-tbl th{padding:5px 7px;font-size:11px}
+#roi-tbl td{font-family:var(--mono)}
+#roi-tbl td.l, #roi-tbl th.l{font-family:var(--font)}
+#roi-tbl .mven{font-size:10px}
+#roi-tbl td.tput{white-space:normal;min-width:64px}
+#roi-tbl td.tput .dim{font-size:9.5px}

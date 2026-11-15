@@ -47,6 +47,7 @@
   <div class="tabs">
     <div class="tab on" data-t="compare">总览对比</div>
     <div class="tab" data-t="gpu">GPU 资源池</div>
+    <div class="tab" data-t="gpuroi">GPU 收益测算</div>
     <div class="tab" data-t="gpsocial">GPU 社媒线索</div>
     <div class="tab" data-t="watch">关注模型</div>
     <div class="tab" data-t="media">图像 / 视频</div>
@@ -146,6 +147,55 @@
     库存为平台返回的可租实例数，点击「前往租赁」跳转到对应平台下单页。
     数据为构建时快照，更新需重跑 <span class="mono">scripts/collect_gpu.py</span> 后重新构建。</div>
   <div class="tw" id="gpuTable"></div>
+</div>
+
+<!-- ============ GPU 收益测算 ============ -->
+<div class="pane" id="p-gpuroi">
+  <div class="pagehead">
+    <div>
+      <h1>GPU 收益测算</h1>
+      <p>当日可纳管 GPU 的模型部署收益 · 现货报价 × InferenceX 实测 × 本站比价 · 单位 USD</p>
+    </div>
+    <div class="meta">
+      <span class="stat-chip"><span class="live"></span>真实数据 · 无推算</span>
+    </div>
+  </div>
+  <div class="note" id="roi-note" style="margin-bottom:12px"></div>
+  <div class="gpu-chips" id="roi-chips"></div>
+  <div class="grid g4" id="roi-cards" style="margin-bottom:16px"></div>
+  <div class="bar" style="margin-bottom:10px">
+    <label class="row" style="gap:8px;flex-wrap:nowrap">
+      <span class="bdge">利用率 <b class="mono" id="roi-utilVal">60%</b>（日收入随其缩放，TCO 照付）</span>
+      <input type="range" id="roi-util" min="10" max="100" step="5" value="60" style="width:160px;accent-color:var(--acc)">
+    </label>
+    <span class="spacer"></span>
+    <span class="bdge">单台 8 卡主机 × 24h 口径</span>
+    <span class="bdge" id="roi-cnt"></span>
+  </div>
+  <div class="note" style="margin-bottom:10px">日收入 / 日 TCO / 日利润 均为<b>单台 8 卡主机 × 24 小时</b>口径；毛利 $/M 与价格为每百万 token（AgentX 加权）；倍率 = 价格 ÷ 实测成本；日收入/日利润/ROI 仅在有实测 tok/s 的行给出；无实测吞吐的行给<b>保本日产量 = 日 TCO ÷ 价格</b>。红 = 盈利，绿 = 亏损。</div>
+  <div class="tw">
+    <table id="roi-tbl">
+      <thead><tr>
+        <th class="l" data-u="model">模型（负载）</th>
+        <th class="l" data-u="plat">平台 / 配置</th>
+        <th data-u="tput">实测吞吐</th>
+        <th data-u="costM">实测成本 $/M</th>
+        <th data-u="priceM">价格 $/M</th>
+        <th data-u="offM">官方价（参考）</th>
+        <th data-u="grossM">毛利 $/M</th>
+        <th data-u="mult">倍率</th>
+        <th data-u="trend">成本趋势</th>
+        <th data-u="stock">现货</th>
+        <th data-u="dayRev">日收入</th>
+        <th data-u="dayTco">日 TCO</th>
+        <th data-u="dayProfit">日利润</th>
+        <th data-u="roi">ROI</th>
+        <th data-u="beVol">保本日产量</th>
+      </tr></thead>
+      <tbody id="roi-rows"></tbody>
+    </table>
+  </div>
+  <div class="note" id="roi-foot" style="margin-top:12px"></div>
 </div>
 
 <!-- ============ GPU 社媒线索 ============ -->

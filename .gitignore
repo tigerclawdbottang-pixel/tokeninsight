@@ -15,6 +15,7 @@ dist/
 
 # ---- 生成物（每日 build 会重写；避免带内置密钥的页面被误提交）----
 web/index.html
+web/gpu_roi.html
 
 # ---- Node（仅测试用）----
 node_modules/

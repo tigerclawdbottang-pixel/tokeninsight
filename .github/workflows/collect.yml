@@ -24,6 +24,10 @@ jobs:
         run: python3 scripts/collect.py
         continue-on-error: true  # 部分源失败不阻塞
 
+      - name: 采集 InferenceX GPU 实测性能
+        run: python3 scripts/collect_inferencex.py
+        continue-on-error: true  # API 结构探明期，失败不阻塞（种子数据兜底）
+
       - name: 生成站点
         run: |
           # 不内置 AI 密钥（公开仓库）

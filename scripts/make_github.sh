@@ -22,9 +22,10 @@ MODELPRICE_EMBED_KEY=0 $PY scripts/build_site.py >/dev/null
 zip -q -r "$ZIP" \
   README.md DEPLOY.md package.json LICENSE .gitignore \
   .github/workflows/pages.yml \
-  web/index.html web/data.json web/app.js web/parsers.js web/llm.js web/style.css web/template.html \
+  web/index.html web/gpu_roi.html web/data.json web/app.js web/parsers.js web/llm.js web/roi.js web/style.css web/template.html web/gpu_roi_template.html \
   data/official_prices.json data/official_auto.json data/fx.json data/llm_key.example.json \
-  scripts/collect.py scripts/fetch_official.py scripts/build_site.py scripts/verify.py scripts/write_llm_key.py \
+  data/gpu_perf_local.json data/inferencex_cost.json data/inferencex_throughput.json data/gpu_snapshot.json \
+  scripts/collect.py scripts/fetch_official.py scripts/build_site.py scripts/build_gpu_roi.py scripts/collect_inferencex.py scripts/extract_inferencex_local.py scripts/verify.py scripts/write_llm_key.py \
   scripts/run_daily.sh scripts/make_dist.sh scripts/make_github.sh \
   scripts/smoke.js scripts/test_parsers.js scripts/test_official_col.js scripts/test_upload_match.js scripts/test_llm.js scripts/test_upload_tier.js scripts/test_ai_e2e.js scripts/test_media.py scripts/test_gateway_parsers.py scripts/diag_media.py scripts/llm_proxy.py scripts/start_ai.command \
   scripts/fixtures/test.xlsx scripts/fixtures/test.docx \
@@ -51,7 +52,7 @@ echo
 echo "上传方式："
 echo "  1) 在 GitHub 新建空仓库（不要勾 README / .gitignore / LICENSE）"
 echo "  2) 解压本包，进入目录"
-echo "  3) git init && git add . && git add -f web/index.html && git commit -m 'init' \\"
+echo "  3) git init && git add . && git add -f web/index.html web/gpu_roi.html && git commit -m 'init' \\"
 echo "     && git remote add origin <你的仓库地址> && git push -u origin main"
 echo "     （web/index.html 是生成物、默认被 .gitignore 忽略；本包内的是已剥离密钥的版本，"
 echo "       用 -f 显式加入，避免把本地带密钥版本误提交）"

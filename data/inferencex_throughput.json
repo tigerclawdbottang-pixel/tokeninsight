@@ -1,0 +1,293 @@
+{
+ "scraped": "2026-11-15",
+ "source": "https://inferencex.semianalysis.com/zh/inference",
+ "unit": "tok/s per accelerator（AgentX 负载，各实测最优点）",
+ "note": "仅最优配置口径；PD 分离配置按解码/预填充芯片折算；tok/s × 3600 = 每小时 token。只收录与现货平台匹配的行；NVL72/Vera Rubin 整柜平台保留在 best_global 供参考。",
+ "by_model_platform": {
+  "kimik31pro": {
+   "b300": {
+    "tps": 27297.2,
+    "m_h": 98.27,
+    "stack": "vLLM",
+    "p90_intvty": 31.2,
+    "p90_intvty_note": "P90 交互性 tok/s/user"
+   }
+  },
+  "minimaxm31flash": {
+   "h100": {
+    "tps": 5922.2,
+    "m_h": 21.32,
+    "out_tps": 45.38249,
+    "in_tps": 5876.85283,
+    "conc": 10.0,
+    "framework": "vllm",
+    "prec": "fp4",
+    "p90_intvty": 60.422960725075534,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-12",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/39903571329/attempts/1"
+   },
+   "h200": {
+    "tps": 10346.0,
+    "m_h": 37.25,
+    "out_tps": 76.97099,
+    "in_tps": 10269.04455,
+    "conc": 20.0,
+    "framework": "vllm",
+    "prec": "fp4",
+    "p90_intvty": 37.3134328358209,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-12",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/39903574233/attempts/2"
+   },
+   "b200": {
+    "tps": 89439.6,
+    "m_h": 321.98,
+    "out_tps": 647.64264,
+    "in_tps": 88791.91804,
+    "conc": 64.0,
+    "framework": "sglang",
+    "prec": "fp4",
+    "p90_intvty": 63.73486297004462,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-12",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/40739120064/attempts/1"
+   },
+   "b300": {
+    "tps": 137428.2,
+    "m_h": 494.74,
+    "out_tps": 973.10196,
+    "in_tps": 136455.11606,
+    "conc": 52.0,
+    "framework": "sglang",
+    "prec": "fp4",
+    "p90_intvty": 86.50519031141867,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-12",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/41488743791/attempts/1"
+   }
+  },
+  "glm53": {
+   "b200": {
+    "tps": 19950.3,
+    "m_h": 71.82,
+    "out_tps": 297.91142,
+    "in_tps": 39602.76336,
+    "conc": 64.0,
+    "framework": "dynamo-sglang",
+    "prec": "fp4",
+    "p90_intvty": 85.5431993156544,
+    "disagg": true,
+    "spec": "mtp",
+    "date": "2026-11-11",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/41003299710/attempts/1"
+   },
+   "h200": {
+    "tps": 2768.5,
+    "m_h": 9.97,
+    "out_tps": 25.96295,
+    "in_tps": 2742.56743,
+    "conc": 12.0,
+    "framework": "dynamo-sglang",
+    "prec": "fp8",
+    "p90_intvty": 126.58227848101265,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-11",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/35177419428/attempts/1"
+   },
+   "b300": {
+    "tps": 42046.7,
+    "m_h": 151.37,
+    "out_tps": 297.57029,
+    "in_tps": 41749.15755,
+    "conc": 48.0,
+    "framework": "dynamo-sglang",
+    "prec": "fp4",
+    "p90_intvty": 38.69969040247678,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-11",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/38356572105/attempts/2"
+   }
+  },
+  "deepseekv41flash": {
+   "h200": {
+    "tps": 65283.1,
+    "m_h": 235.02,
+    "out_tps": 503.09567,
+    "in_tps": 64779.99534,
+    "conc": 64.0,
+    "framework": "vllm",
+    "prec": "fp4",
+    "p90_intvty": 38.91050583657587,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-13",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/42341901521/attempts/1"
+   },
+   "b200": {
+    "tps": 388471.1,
+    "m_h": 1398.5,
+    "out_tps": 2799.51513,
+    "in_tps": 385671.60158,
+    "conc": 576.0,
+    "framework": "vllm",
+    "prec": "fp4",
+    "p90_intvty": 106.72358591248666,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-13",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/41894132869/attempts/1"
+   },
+   "b300": {
+    "tps": 625966.0,
+    "m_h": 2253.48,
+    "out_tps": 4690.82401,
+    "in_tps": 621275.19354,
+    "conc": 1280.0,
+    "framework": "vllm",
+    "prec": "fp4",
+    "p90_intvty": 35.85514521333811,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-13",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/42108214901/attempts/2"
+   },
+   "h100": {
+    "tps": 19848.9,
+    "m_h": 71.46,
+    "out_tps": 129.58197,
+    "in_tps": 19719.31502,
+    "conc": 28.0,
+    "framework": "vllm",
+    "prec": "fp4",
+    "p90_intvty": 67.88866259334691,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-13",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/40457810253/attempts/1"
+   }
+  },
+  "qwen38flashnext": {
+   "b300": {
+    "tps": 218677.6,
+    "m_h": 787.24,
+    "out_tps": 2413.4854,
+    "in_tps": 216264.14627,
+    "conc": 80.0,
+    "framework": "sglang",
+    "prec": "fp4",
+    "p90_intvty": 24.770869457517957,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-13",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/41117066222/attempts/1"
+   },
+   "h100": {
+    "tps": 8013.1,
+    "m_h": 28.85,
+    "out_tps": 72.19989,
+    "in_tps": 7940.90434,
+    "conc": 16.0,
+    "framework": "sglang",
+    "prec": "fp8",
+    "p90_intvty": 14.382281029771322,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-13",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/33039903416/attempts/1"
+   },
+   "b200": {
+    "tps": 133043.0,
+    "m_h": 478.95,
+    "out_tps": 1160.65189,
+    "in_tps": 131882.39703,
+    "conc": 32.0,
+    "framework": "sglang",
+    "prec": "fp4",
+    "p90_intvty": 50.0,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-13",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/42148845210/attempts/2"
+   },
+   "h200": {
+    "tps": 34070.2,
+    "m_h": 122.65,
+    "out_tps": 304.17588,
+    "in_tps": 33765.98533,
+    "conc": 16.0,
+    "framework": "sglang",
+    "prec": "fp8",
+    "p90_intvty": 55.005500550055004,
+    "disagg": false,
+    "spec": "mtp",
+    "date": "2026-11-13",
+    "url": "https://github.com/SemiAnalysisAI/InferenceX/actions/runs/42376325676/attempts/1"
+   }
+  }
+ },
+ "best_global": [
+  {
+   "model": "DeepSeek V4.1 Flash 552B",
+   "hw": "GB300 NVL72 (Dynamo vLLM)",
+   "prec": "FP4",
+   "tps": 1011513.5,
+   "m_h": 3641.4
+  },
+  {
+   "model": "Qwen3.8 Flash Next 176B",
+   "hw": "Vera Rubin NVL72 (Dynamo SGLang)",
+   "prec": "FP4",
+   "tps": 629084.5,
+   "m_h": 2264.7
+  },
+  {
+   "model": "DeepSeek V4 Pro 0813 1.6T",
+   "hw": "Vera Rubin NVL72 (Dynamo TRTLLM)",
+   "prec": "FP4",
+   "tps": 285379.9,
+   "m_h": 1027.4
+  },
+  {
+   "model": "MiniMax M3.1 Flash 428B",
+   "hw": "Vera Rubin NVL72 (Dynamo vLLM)",
+   "prec": "FP4",
+   "tps": 254868.8,
+   "m_h": 917.5
+  },
+  {
+   "model": "Qwen3.5 397B-A17B",
+   "hw": "GB300 NVL72 (Dynamo TRTLLM)",
+   "prec": "FP4",
+   "tps": 166436.0,
+   "m_h": 599.2
+  },
+  {
+   "model": "GLM-5.2 / 5.3 744B",
+   "hw": "Vera Rubin NVL72 (Dynamo TRTLLM)",
+   "prec": "FP4",
+   "tps": 149864.9,
+   "m_h": 539.5
+  },
+  {
+   "model": "Kimi K3 2.8T",
+   "hw": "Vera Rubin NVL72 (Dynamo vLLM)",
+   "prec": "FP4",
+   "tps": 44755.1,
+   "m_h": 161.1
+  },
+  {
+   "model": "Kimi K3.1 Pro 2.8T",
+   "hw": "GB300 NVL72 (Dynamo vLLM)",
+   "prec": "FP4",
+   "tps": 36346.7,
+   "m_h": 130.8
+  }
+ ]
+}

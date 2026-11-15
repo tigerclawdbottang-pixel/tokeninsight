@@ -290,6 +290,7 @@ def load_gpu():
 
 def main():
     _check_source_sync()
+    import build_gpu_roi  # ROI 数据包（内嵌 tab 与独立页共用）
     load_official()
     load_fx()
     if not os.path.exists(DB):
@@ -504,6 +505,7 @@ def main():
             n_none=sum(1 for m in models if not m["official"]),
         ),
         gpu=gpu_payload,
+        roi=build_gpu_roi.build_payload(models)[0],
     )
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w") as fh:
@@ -516,7 +518,8 @@ def main():
     js = (open(os.path.join(W, "parsers.js"), encoding="utf-8").read() + "\n"
           + open(os.path.join(W, "llm.js"), encoding="utf-8").read() + "\n"
           + open(os.path.join(W, "app.js"), encoding="utf-8").read() + "\n"
-          + open(os.path.join(W, "gpu.js"), encoding="utf-8").read())
+          + open(os.path.join(W, "gpu.js"), encoding="utf-8").read() + "\n"
+          + open(os.path.join(W, "roi.js"), encoding="utf-8").read())
     data_js = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("</script>", r"<\/script>")
     # ---- 内置 AI 密钥（可选）----
     # 存在 data/llm_key.json 时把密钥混淆后写进页面，打开即可直接用 AI 功能。
@@ -545,6 +548,13 @@ def main():
     with open(idx, "w", encoding="utf-8") as fh:
         fh.write(html)
     print(f"生成 {idx}  {os.path.getsize(idx)/1024:.0f} KB (自包含)")
+
+    # ---- GPU 收益测算页（独立模块；缺数据自动跳过）----
+    try:
+        import build_gpu_roi
+        build_gpu_roi.build(models, css)
+    except Exception as e:
+        print(f"  ROI：生成失败 {e}（不影响主站）", file=sys.stderr)
 
     kb = os.path.getsize(OUT) / 1024
     print(f"生成 {OUT}  {kb:.0f} KB")

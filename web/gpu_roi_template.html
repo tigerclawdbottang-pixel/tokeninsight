@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPU 收益测算 · Token Market Insight</title>
+<style>/*__CSS__*/
+/* ---------- GPU ROI 页面专属 ---------- */
+.roi-note{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px;font-size:12px;color:var(--tx2);margin:18px 0;line-height:1.8}
+.roi-note b{color:var(--tx)}
+.roi-ctrl{display:flex;gap:18px;flex-wrap:wrap;align-items:center;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px;margin-bottom:18px}
+.roi-ctrl label{font-size:12px;color:var(--tx3);display:flex;flex-direction:column;gap:6px}
+.roi-ctrl input[type=range]{width:140px;accent-color:var(--acc)}
+.roi-ctrl select,.roi-ctrl input[type=number]{background:var(--bg3);border:1px solid var(--line2);color:var(--tx);border-radius:var(--r-sm);padding:5px 8px;font:12px var(--mono)}
+.roi-ctrl .val{font:600 12px var(--mono);color:var(--acc2)}
+.roi-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:20px}
+.roi-card{background:linear-gradient(160deg,var(--bg3),var(--bg2));border:1px solid var(--line2);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden}
+.roi-card::before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,var(--acc),transparent)}
+.roi-card h3{margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--tx3)}
+.roi-card .big{font:700 26px/1.2 var(--mono)}
+.roi-card .big.pos{color:var(--lo)}.roi-card .big.neg{color:var(--hi)}.roi-card .big.acc{color:var(--acc2)}
+.roi-card .sm{font-size:11px;color:var(--tx2);margin-top:6px}
+h2.sec{font-size:15px;margin:26px 0 10px;display:flex;align-items:center;gap:10px}
+h2.sec .cnt{font:600 11px var(--mono);color:var(--tx3)}
+.sec-note{font-size:11.5px;color:var(--tx3);margin:-4px 0 10px;line-height:1.8}
+.sec-note b{color:var(--tx2);font-weight:600}
+table.roi{width:100%;border-collapse:collapse;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;font-size:12.5px}
+table.roi th{background:var(--bg3);color:var(--tx3);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-align:right;padding:10px 12px;border-bottom:1px solid var(--line2);white-space:nowrap;cursor:pointer;user-select:none}
+table.roi th.l,table.roi td.l{text-align:left}
+table.roi td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--mono);white-space:nowrap}
+table.roi tr:last-child td{border-bottom:none}
+table.roi tbody tr:hover td{background:var(--bg3)}
+.mname{font:600 12.5px var(--font);color:var(--tx)}
+.mven{font-size:10.5px;color:var(--tx3)}
+.badge{display:inline-block;font:600 10px/1 var(--font);padding:3px 7px;border-radius:99px;border:1px solid;vertical-align:1px}
+.badge.m{color:var(--lo);background:var(--lo-bg);border-color:var(--lo-bd)}
+.badge.e{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-bd)}
+.pill{display:inline-block;padding:2px 8px;border-radius:6px;font:600 11.5px var(--mono)}
+.pill.n{background:var(--acc-bg);color:var(--acc2)}
+.pill.lo{color:var(--lo);background:var(--lo-bg)}
+.pill.hi{color:var(--hi);background:var(--hi-bg)}
+.pill.mut{color:var(--tx2);background:var(--bg3)}
+.pos{color:var(--lo)}.neg{color:var(--hi)}
+.dim{color:var(--tx3)}
+.rent-edit{width:64px;background:transparent;border:1px dashed var(--line2);color:var(--acc2);border-radius:6px;padding:2px 5px;font:11px var(--mono);text-align:right}
+.rent-edit:focus{border-color:var(--acc);outline:none}
+
+/* 纳管现货清单条 + 平台悬停浮层 */
+.gpu-chips{display:flex;gap:10px;flex-wrap:wrap;margin:-6px 0 18px}
+.gpu-chip{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r-sm);padding:8px 14px;font-size:12px;display:flex;gap:8px;align-items:baseline}
+.gpu-chip b{font-family:var(--mono)}
+.gpu-chip .dim{font-size:11px}
+td.stk{cursor:help}
+.plat-tip{position:fixed;z-index:90;background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r-sm);padding:10px 12px;font-size:11.5px;box-shadow:0 8px 30px rgba(0,0,0,.45);pointer-events:none;min-width:200px}
+.plat-tip .pt-t{font-weight:700;margin-bottom:6px;color:var(--tx)}
+.plat-tip .pt-r{display:flex;justify-content:space-between;gap:14px;padding:2px 0;font-family:var(--mono);color:var(--tx2)}
+.plat-tip .pt-r b{color:var(--acc2);font-weight:600}
+footer{margin-top:28px;font-size:11px;color:var(--tx3);line-height:1.9}
+.back{color:var(--acc2);font-size:12px}
+/* 中文财经配色：红盈绿亏（覆盖站点默认的绿盈红亏） */
+.pos,.roi-card .big.pos{color:var(--hi)}
+.neg,.roi-card .big.neg{color:var(--lo)}
+.pill.lo{color:var(--hi);background:var(--hi-bg);border:1px solid var(--hi-bd)}
+.pill.hi{color:var(--lo);background:var(--lo-bg);border:1px solid var(--lo-bd)}
+</style>
+</head>
+<body>
+<header>
+  <div class="hd">
+    <div class="logo">
+      <svg class="logomark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <defs><linearGradient id="orMark" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7C6CF6"/><stop offset=".55" stop-color="#F97316"/><stop offset="1" stop-color="#EC4899"/>
+        </linearGradient></defs>
+        <circle cx="16" cy="16" r="14" fill="url(#orMark)"/>
+        <circle cx="16" cy="16" r="8.5" fill="none" stroke="#fff" stroke-width="2" opacity=".92"/>
+        <circle cx="16" cy="7.5" r="2.1" fill="#fff"/>
+        <circle cx="9.5" cy="20" r="2.1" fill="#fff"/>
+        <circle cx="22.5" cy="20" r="2.1" fill="#fff"/>
+      </svg>
+      <span class="logo-text">
+        <span class="wordmark">GPU 收益测算</span>
+        <span class="logo-sub">GPU ROI · INFERENCE ECONOMICS</span>
+      </span>
+    </div>
+    <a class="back" href="index.html">← 返回比价首页</a>
+    <div class="spacer"></div>
+    <span class="date"><span class="date-lbl">DATA</span> <b id="generated">—</b></span>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="roi-note" id="note"></div>
+  <div class="gpu-chips" id="gpuChips"></div>
+
+  <div class="roi-cards" id="cards"></div>
+
+  <div class="roi-ctrl" style="margin-top:18px">
+    <label>利用率（日收入随其缩放，TCO 照付）
+      <span><input type="range" id="util" min="10" max="100" step="5" value="60"> <span class="val" id="utilVal">60%</span></span>
+    </label>
+  </div>
+
+  <h2 class="sec">当日可纳管部署 · 模型 × GPU 平台 <span class="cnt" id="cntU"></span></h2>
+  <div class="sec-note">口径说明：日收入 / 日 TCO / 日利润 均为<b>单台 8 卡主机 × 24 小时</b>的口径；毛利 $/M 与价格为每百万 token（AgentX 加权）；倍率 = 价格 ÷ 实测成本；ROI = 日利润 ÷ 日 TCO（单卡与整机结果相同）；日收入/日利润/ROI 仅在有实测 tok/s 的行给出（真实吞吐 × 真实挂牌价 × 利用率）；无实测吞吐的行给<b>保本日产量 = 日 TCO ÷ 价格</b>（M token/天，纯真实数字，达到该付费量即保本）——InferenceX 吞吐实测接入后自动填齐。</div>
+  <table class="roi" id="tblU">
+    <thead><tr>
+      <th class="l" data-u="model">模型（负载）</th>
+      <th class="l" data-u="plat">平台 / 配置</th>
+      <th data-u="tput">实测吞吐</th>
+      <th data-u="costM">实测成本 $/M</th>
+      <th data-u="priceM">价格 $/M</th>
+      <th data-u="offM">官方价（参考）</th>
+      <th data-u="grossM">毛利 $/M</th>
+      <th data-u="mult">倍率</th>
+      <th data-u="trend">成本趋势</th>
+      <th data-u="stock">现货</th>
+      <th data-u="dayRev">日收入</th>
+      <th data-u="dayTco">日 TCO</th>
+      <th data-u="dayProfit">日利润</th>
+      <th data-u="roi">ROI</th>
+      <th data-u="beVol">保本日产量</th>
+    </tr></thead>
+    <tbody id="rowsU"></tbody>
+  </table>
+
+  <footer id="foot"></footer>
+</main>
+
+<script>
+const DATA = /*__DATA__*/ null;
+</script>
+<script>
+/* ===================================================================
+   GPU 收益测算（纯前端，全部真实数据）
+   成本矩阵：毛利倍率 = 同负载加权价格(OpenRouter) ÷ InferenceX 实测成本
+   组合表：收入$/卡·h = 3600×(输入tps/卡×入价 + 输出tps/卡×出价)/1e6
+          日TCO = 市场最低租价×24×8；ROI = (日收入−日TCO)/日TCO
+   =================================================================== */
+const $ = s => document.querySelector(s);
+const state = { sortU: 'mult', ascU: false, util: 0.60 };
+
+const fmt0 = v => v == null ? '—' : Math.round(v).toLocaleString();
+const fmt1 = v => v == null ? '—' : v.toFixed(1);
+const fmt2 = v => v == null ? '—' : v.toFixed(2);
+const fmt$ = v => (v < 0 ? '-$' : '$') + Math.abs(v).toLocaleString('en-US', { maximumFractionDigits: 0 });
+const fmtPct = v => v == null ? '—' : (v * 100).toFixed(1) + '%';
+
+/* 市场定价锚：OpenRouter（缺失回退中位价，再回退官方价）；官方价仅作参考列 */
+function priceOf(key) {
+  const p = DATA.prices[key];
+  if (!p) return null;
+  if (p.or) return { pin: p.or.input, pout: p.or.output, tag: 'OpenRouter' };
+  if (p.median) return { pin: p.median.input, pout: p.median.output, tag: p.median.src };
+  if (p.official) return { pin: p.official.input, pout: p.official.output, tag: '官方' };
+  return null;
+}
+
+/* ---- 统一行生成：实测吞吐为主轴，成本矩阵/现货/价格三方合流 ---- */
+function rowsUnified() {
+  const rows = [];
+  const seen = new Set();
+  const key2 = (mk, pid) => mk + '|' + pid;
+  const tpAll = (DATA.throughput && DATA.throughput.by_model_platform) || {};
+  const mktById = {}; (DATA.market || []).forEach(g => mktById[g.id] = g);
+  const nameOf = mk => {
+    const c = (DATA.cost.costs || []).find(m => m.model_key === mk);
+    if (c) return c.model;
+    const p = DATA.prices[mk];
+    return p ? p.name : mk;
+  };
+  const mkAbs = (tp, priceW, rent) => {
+    if (!tp || priceW == null) return null;
+    const dayTco = rent * 24 * 8;
+    const dayRev = tp.tps * 86400 * 8 * state.util * priceW / 1e6;
+    return { dayTco, dayRev, dayProfit: dayRev - dayTco, roi: (dayRev - dayTco) / dayTco };
+  };
+  // A) InferenceX 成本矩阵 × 现货（成本/趋势 + 吞吐若有）
+  const cost = DATA.cost || { costs: [], platforms: [] };
+  const platName = {}; (cost.platforms || []).forEach(p => platName[p.id] = p.name);
+  for (const m of cost.costs) {
+    const ow = (cost.official_weighted[m.model_key] || {}).weighted;
+    const tw = DATA.prices_w && DATA.prices_w[m.model_key];
+    const twOr = tw && (tw.or || tw.med);
+    for (const [pid, cell] of Object.entries(m.cells)) {
+      const mk = (DATA.cost_market || {})[pid];
+      if (!mk) continue;
+      const tp = tpAll[m.model_key] && tpAll[m.model_key][pid];
+      const dayTco = mk.min_price * 24 * 8;
+      rows.push({
+        model: m.model, workload: m.workload, plat: platName[pid] || pid,
+        config: cell.config, costM: cell.cost,
+        priceM: twOr ? twOr.v : null,
+        priceSrc: twOr ? (tw.or ? 'OpenRouter' : (tw.med || {}).src) : null,
+        offM: ow != null ? ow : null, trend: cell.trend,
+        stock: mk.stock, stockCards: mk.stock_cards, rent: mk.min_price,
+        abs: mkAbs(tp, twOr && twOr.v, mk.min_price),
+        beVol: twOr ? dayTco / twOr.v : null,
+        tput: tp || null, gpuId: pid, dayTco,
+      });
+      seen.add(key2(m.model_key, pid));
+    }
+  }
+  // B) 吞吐实测 × 现货（成本矩阵未覆盖的 模型×平台，如 H100/H200 行）
+  for (const [mk, plats] of Object.entries(tpAll)) {
+    const tw = DATA.prices_w && DATA.prices_w[mk];
+    const twOr = tw && (tw.or || tw.med);
+    for (const [pid, tp] of Object.entries(plats)) {
+      if (seen.has(key2(mk, pid))) continue;
+      const mket = mktById[pid];
+      if (!mket) continue;
+      const dayTco = mket.min_price * 24 * 8;
+      rows.push({
+        model: nameOf(mk), workload: 'AgentX 实测',
+        plat: (mket.name || pid).replace('NVIDIA ', ''),
+        config: `${(tp.framework || '').toUpperCase()}·${tp.prec || ''}·并发 ${tp.conc ?? '—'}`,
+        costM: null, priceM: twOr ? twOr.v : null,
+        priceSrc: twOr ? (tw.or ? 'OpenRouter' : (tw.med || {}).src) : null,
+        offM: null, trend: null,
+        stock: mket.stock, stockCards: mket.stock_cards, rent: mket.min_price,
+        abs: mkAbs(tp, twOr && twOr.v, mket.min_price),
+        beVol: twOr ? dayTco / twOr.v : null,
+        tput: tp, gpuId: pid, dayTco,
+      });
+      seen.add(key2(mk, pid));
+    }
+  }
+  // C) 本地吞吐实测 × 现货（InferenceX CSV 未覆盖的模型：MiniMax M2.5 / Qwen3.5 397B 等）
+  for (const c of DATA.combos) {
+    if (seen.has(key2(c.model_key, c.gpu))) continue;
+    const gpus = c.gpus || 8;
+    const pr = priceOf(c.price_key || c.model_key);
+    const revCardH = pr ? 3600 * ((c.input_tps / gpus) * (pr.pin || 0) + (c.output_tps / gpus) * (pr.pout || 0)) / 1e6 : null;
+    const dayTco = c.rent_min * 24 * gpus;
+    const dayRev = revCardH != null ? revCardH * 24 * gpus * state.util : null;
+    const pwB = (DATA.prices_w || {})[c.price_key] || {};
+    const pwOrB = pwB.or || pwB.med;
+    rows.push({
+      model: c.model, workload: `本地实测 · 全新鲜负载 · 并发 ${c.conc}`,
+      plat: c.gpu_name.replace('NVIDIA ', '') + ' × ' + gpus,
+      config: (c.framework || '') + (c.quant ? '·' + c.quant : ''),
+      costM: null, priceM: null, priceSrc: pr ? pr.tag : null, offM: null, trend: null,
+      stock: c.stock, stockCards: c.stock_cards || c.stock, rent: c.rent_min, gpuId: c.gpu,
+      abs: dayRev != null ? { dayTco, dayRev, dayProfit: dayRev - dayTco, roi: (dayRev - dayTco) / dayTco } : null,
+      beVol: pwOrB ? dayTco / pwOrB.v : null, tput: null, dayTco,
+    });
+    seen.add(key2(c.model_key, c.gpu));
+  }
+  for (const r of rows) {
+    r.grossM = (r.priceM != null && r.costM != null) ? r.priceM - r.costM : null;
+    r.mult = (r.priceM != null && r.costM) ? r.priceM / r.costM : null;
+  }
+  return rows;
+}
+
+function renderU() {
+  const rows = rowsUnified();
+  rows.sort((a, b) => ((a[state.sortU] ?? -9e9) - (b[state.sortU] ?? -9e9)) * (state.ascU ? 1 : -1));
+  $('#cntU').textContent = `${rows.length} 条 · 仅列有纳管现货的平台`;
+  $('#rowsU').innerHTML = rows.map(r => `<tr>
+    <td class="l"><span class="mname">${r.model}</span><br><span class="mven">${r.workload}</span></td>
+    <td class="l"><b>${r.plat}</b><br><span class="mven">${r.config || ''}</span></td>
+    <td>${r.tput ? `<b>${fmt0(r.tput.tps)}</b> tok/s/卡<br><span class="dim" style="font-size:10px">${r.tput.m_h}M/h · 并发 ${r.tput.conc ?? '—'} · P90 ${r.tput.p90_intvty ?? '—'}</span>` : '<span class="dim">—</span>'}</td>
+    <td>${r.costM != null ? `<b>$${r.costM < 0.01 ? r.costM.toFixed(4) : fmt2(r.costM)}</b>` : '<span class="dim">—</span>'}</td>
+    <td>${r.priceM != null ? '$' + (r.priceM < 0.01 ? r.priceM.toFixed(4) : fmt2(r.priceM)) + `<br><span class="dim" style="font-size:10px">${r.priceSrc || ''}</span>` : '—'}</td>
+    <td class="dim">${r.offM != null ? '$' + r.offM : '—'}</td>
+    <td class="${r.grossM != null && r.grossM >= 0 ? 'pos' : 'neg'}">${r.grossM != null ? '$' + fmt2(r.grossM) : '—'}</td>
+    <td>${r.mult != null ? `<span class="pill ${r.mult >= 2 ? 'lo' : r.mult >= 1 ? 'n' : 'hi'}">×${r.mult.toFixed(1)}</span>` : '—'}</td>
+    <td>${r.trend != null ? `<span class="${r.trend < 0 ? 'pos' : 'neg'}">${r.trend > 0 ? '↑' : '↓'}${Math.abs(r.trend)}%</span>` : '<span class="dim">—</span>'}</td>
+    <td class="stk" data-gpu="${r.gpuId}"><span class="pill n">${r.stock}</span> 台 <span class="dim">${r.stockCards || r.stock} 卡</span><br><span class="dim" style="font-size:10px">$${fmt2(r.rent)}/卡·h 起</span></td>
+    <td>${r.abs ? fmt$(r.abs.dayRev) : '<span class="dim">—</span>'}</td>
+    <td>${r.abs ? fmt$(r.abs.dayTco) : '—'}</td>
+    <td class="${r.abs && r.abs.dayProfit >= 0 ? 'pos' : 'neg'}">${r.abs ? '<b>' + fmt$(r.abs.dayProfit) + '</b>' : '<span class="dim">—</span>'}</td>
+    <td>${r.abs ? `<span class="${r.abs.roi >= 0 ? 'pos' : 'neg'}">${(r.abs.roi * 100).toFixed(0)}%</span>` : '<span class="dim" style="font-size:10px">待吞吐实测</span>'}</td>
+    <td>${r.beVol != null ? (r.beVol >= 100 ? fmt0(r.beVol) : r.beVol.toFixed(1)) + ' M tok' : '—'}</td>
+  </tr>`).join('') || '<tr><td colspan="13" style="text-align:center;color:var(--tx3);padding:30px">暂无可纳管组合</td></tr>';
+  return rows;
+}
+
+function renderCards(rows) {
+  const withMult = rows.filter(r => r.mult != null);
+  const bestMult = withMult.length ? withMult.reduce((a, b) => b.mult > a.mult ? b : a) : null;
+  const withAbs = rows.filter(r => r.abs);
+  const bestE = withAbs.length ? withAbs.reduce((a, b) => b.abs.roi > a.abs.roi ? b : a) : null;
+  const totStock = DATA.market.reduce((s, g) => s + g.stock, 0);
+  const totCards = DATA.market.reduce((s, g) => s + (g.stock_cards || 0), 0);
+  const nPlat = DATA.cost_market ? Object.keys(DATA.cost_market).length : 0;
+  $('#cards').innerHTML = `
+    <div class="roi-card"><h3>最高毛利倍率（价格 ÷ 实测成本）</h3>
+      <div class="big ${bestMult && bestMult.mult >= 1 ? 'pos' : 'neg'}">${bestMult ? '×' + bestMult.mult.toFixed(1) : '—'}</div>
+      <div class="sm">${bestMult ? `${bestMult.model} · ${bestMult.plat} · 价 $${bestMult.priceM} / 成本 $${bestMult.costM}` : '暂无数据'}</div></div>
+    <div class="roi-card"><h3>最佳当日 ROI（吞吐实测行）</h3>
+      <div class="big ${bestE && bestE.abs.roi >= 0 ? 'pos' : 'neg'}">${bestE ? (bestE.abs.roi * 100).toFixed(0) + '%' : '—'}</div>
+      <div class="sm">${bestE ? `${bestE.model} · ${bestE.plat} · 日利润 ${fmt$(bestE.abs.dayProfit)} / TCO ${fmt$(bestE.abs.dayTco)}` : '暂无吞吐实测行'}</div></div>
+    <div class="roi-card"><h3>纳管现货覆盖</h3>
+      <div class="big acc">${DATA.market.length} 种 · ${totStock} 台 / ${totCards} 卡</div>
+      <div class="sm">${DATA.market.map(g => g.name.split(' ').slice(1).join(' ') + ' $' + fmt2(g.min_price)).join(' · ')}</div></div>
+    <div class="roi-card"><h3>可纳管组合</h3>
+      <div class="big acc">${rows.length} 条</div>
+      <div class="sm">${nPlat} 个现货平台 · 成本截至 ${DATA.cost ? DATA.cost.asof_prices : '—'}</div></div>`;
+}
+
+function renderAll() { const rows = renderU(); renderCards(rows); }
+
+function init() {
+  $('#generated').textContent = (DATA.generated || '').slice(0, 10);
+  const apiOk = DATA.api && DATA.api.found && DATA.api.found.length;
+  const waitTxt = DATA.waiting.length
+    ? `；<b>待实测</b>：${DATA.waiting.map(w => w.gpu.replace('NVIDIA ', '')).join('、')}（InferenceX 实测接入后自动出现）` : '';
+  $('#note').innerHTML =
+    `<b>当日可纳管 GPU 的模型部署收益（全部真实数据，无推算）：</b>GPU 成本为本站纳管<b>现货报价</b>（${DATA.market.length} 种型号、${DATA.market.reduce((s, g) => s + g.stock, 0)} 台 / ${DATA.market.reduce((s, g) => s + (g.stock_cards || 0), 0)} 卡；价格为整机报价折算的 $/卡·h，取 8 卡整机当日最低价）；` +
+    `性能/成本为 <b>InferenceX 官方发布实测</b>（成本矩阵截至 ${DATA.cost ? DATA.cost.asof_prices : '—'}；本地仓库吞吐实测 2026-02）；` +
+    `价格以 <b>OpenRouter 为市场定价锚</b>（AgentX 同负载加权：缓存 97.5%/输入 2%/输出 0.5%），官方价仅作参考。` +
+    `每行 = 有实测性能 ∧ 有现货 ∧ 显存装得下的模型×平台${waitTxt}。` +
+    `毛利 $/M = 价格 − 实测成本；日收入/日 TCO/日利润/ROI 列：本地吞吐实测行为实测推算，成本矩阵行为<b>估算¹</b>（假设 InferenceX 成本基准≈本站现货租价，则满产日收入 = 日 TCO × 毛利倍率，ROI = 倍率 − 1；日 TCO = 8 卡整机折算最低 $/卡·h × 24 × 8（真实现货价归一化））。暂不包含模型授权成本。`;
+  const concl = DATA.cost && DATA.cost.conclusions ? '<br><b>中转站设计结论（InferenceX）：</b>' + DATA.cost.conclusions.join('；') : '';
+  $('#foot').innerHTML =
+    `数据来源：SemiAnalysis InferenceX（overview 成本矩阵 + experimental 目录实测）· 本站现货清单 · 本站每日比价。H200 行成本为「现货租价 ÷ 实测产能」口径，与 InferenceX 成本矩阵的 TCO 基准可能存在差异。` +
+    concl +
+    `<br>生成时间：${DATA.generated} · ${DATA.cost ? DATA.cost.source : ''} · 投资前请核实最新实测。`;
+
+
+  // 纳管现货清单条（每种 GPU：合计纳管卡数 + 最低价）
+  $('#gpuChips').innerHTML = DATA.market.map(g =>
+    `<div class="gpu-chip"><b>${g.name.replace('NVIDIA ', '')}</b>` +
+    `<span>纳管 ${g.stock} 台 / ${g.stock_cards} 卡</span>` +
+    `<span class="dim">最低 $${fmt2(g.min_price)}/卡·h${g.min_platform ? ' · ' + g.min_platform : ''}</span></div>`
+  ).join('');
+
+  // 现货单元格悬停：按平台展开（哪个站、多少卡、什么价）
+  const platByGpu = {}; DATA.market.forEach(g => platByGpu[g.id] = g);
+  let tip = null;
+  const tbody = document.querySelector('#rowsU');
+  tbody.addEventListener('mouseover', e => {
+    const td = e.target.closest('td.stk'); if (!td) return;
+    const g = platByGpu[td.dataset.gpu]; if (!g) return;
+    if (!tip) { tip = document.createElement('div'); tip.className = 'plat-tip'; document.body.appendChild(tip); }
+    tip.innerHTML = `<div class="pt-t">${g.name.replace('NVIDIA ', '')} · ${g.stock} 台 / ${g.stock_cards} 卡 · ${g.n_listings} 条报价</div>` +
+      g.by_platform.map(pp => `<div class="pt-r"><span>${pp.platform}</span><span><b>${pp.nodes}</b> 台 · ${pp.cards} 卡 · $${fmt2(pp.min_price)}/卡·h</span></div>`).join('');
+    tip.style.display = 'block';
+  });
+  tbody.addEventListener('mousemove', e => {
+    if (!tip || tip.style.display === 'none') return;
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - 250) + 'px';
+    tip.style.top = (e.clientY + 14) + 'px';
+  });
+  tbody.addEventListener('mouseout', e => {
+    if (e.target.closest('td.stk') && tip) tip.style.display = 'none';
+  });
+
+  $('#util').addEventListener('input', e => { state.util = +e.target.value / 100; $('#utilVal').textContent = e.target.value + '%'; renderAll(); });
+
+  document.querySelectorAll('#tblU th').forEach(th => th.addEventListener('click', () => {
+    const k = th.dataset.u; if (!k) return;
+    if (state.sortU === k) state.ascU = !state.ascU; else { state.sortU = k; state.ascU = false; }
+    renderAll();
+  }));
+  renderAll();
+}
+init();
+</script>
+</body>
+</html>
