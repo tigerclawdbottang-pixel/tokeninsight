@@ -375,8 +375,18 @@ function renderTopCards(top, metric) {
     const vals = SRCIDS.map(sid => valOf(m, sid, metric)).filter(v => v != null);
     nPrices += vals.length;
     if (vals.length > 1) {
-      const mn = Math.min(...vals), mx = Math.max(...vals);
-      if (mn > 0 && mx > mn) spreads.push((mx / mn - 1) * 100);
+      // 过滤异常低价：如果某源价格低于中位数的 10%，视为可疑（可能是促销/限免/数据错误）
+      // 不参与价差计算，避免「1333233%」这种不合逻辑的比例
+      const sorted = [...vals].sort((a, b) => a - b);
+      const median = sorted.length % 2 === 0
+        ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+        : sorted[Math.floor(sorted.length / 2)];
+      const threshold = median * 0.1;  // 中位数的 10%
+      const filtered = vals.filter(v => v >= threshold);
+      if (filtered.length > 1) {
+        const mn = Math.min(...filtered), mx = Math.max(...filtered);
+        if (mn > 0 && mx > mn) spreads.push((mx / mn - 1) * 100);
+      }
     }
   }
   const avg = spreads.length ? spreads.reduce((a, b) => a + b, 0) / spreads.length : null;
