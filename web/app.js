@@ -157,10 +157,7 @@ function renderTable() {
       if (bv == null) return -1;
       return (av < bv ? -1 : av > bv ? 1 : 0) * dir;
     }
-    else if (k === 'spread') {
-      const sp = m => { const v = activeVals(m, S.metric); return v.length > 1 ? Math.max(...v) / Math.min(...v) : 0; };
-      x = sp(a); y = sp(b);
-    } else { x = valOf(a, k, S.metric) ?? 1e18; y = valOf(b, k, S.metric) ?? 1e18; }
+    else if (k === 'n_src') { x = a.n_src; y = b.n_src; } else { x = valOf(a, k, S.metric) ?? 1e18; y = valOf(b, k, S.metric) ?? 1e18; }
     return (x < y ? -1 : x > y ? 1 : 0) * dir;
   });
 
@@ -173,7 +170,7 @@ function renderTable() {
   h += `<th data-k="official">模型官网价格 ${S.sort.k === 'official' ? (S.sort.dir > 0 ? '▲' : '▼') : ''}</th>`;
   for (const sid of ids)
     h += `<th data-k="${sid}">${esc(srcLabel(sid))}</th>`;
-  h += `<th data-k="spread">最大价差</th><th data-k="n_src">源数</th></tr></thead><tbody>`;
+  h += `<th data-k="n_src">源数</th></tr></thead><tbody>`;
 
   for (const m of list) {
     const vals = activeVals(m, S.metric);
@@ -195,9 +192,7 @@ function renderTable() {
       const txt = S.metric === 'discount' ? (v > 0 ? v.toFixed(0) + '%' : '—') : priceFixed(v);
       h += `<td><span class="${cls}${S.metric === 'discount' ? '' : ' price'}">${txt}</span></td>`;
     }
-    const sp = (mn && mx && mx > 0 && mn > 0 && vals.length > 1) ? ((mx / mn - 1) * 100) : null;
-    h += `<td>${sp ? `<span class="pill mut">${sp.toFixed(0)}%</span>` : '<span class="na">—</span>'}</td>
-      <td><span class="pill n">${m.n_src}</span></td></tr>`;
+    h += `<td><span class="pill n">${m.n_src}</span></td></tr>`;
   }
   h += '</tbody></table>';
   $('tbl').innerHTML = h;
@@ -370,32 +365,16 @@ function renderTopCards(top, metric) {
   const el = $('cards');
   if (!el) return;
   let nPrices = 0;
-  const spreads = [];
+  let nSources = new Set();
   for (const m of top) {
     const vals = SRCIDS.map(sid => valOf(m, sid, metric)).filter(v => v != null);
     nPrices += vals.length;
-    if (vals.length > 1) {
-      // 过滤异常低价：如果某源价格低于中位数的 10%，视为可疑（可能是促销/限免/数据错误）
-      // 不参与价差计算，避免「1333233%」这种不合逻辑的比例
-      const sorted = [...vals].sort((a, b) => a - b);
-      const median = sorted.length % 2 === 0
-        ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
-        : sorted[Math.floor(sorted.length / 2)];
-      const threshold = median * 0.1;  // 中位数的 10%
-      const filtered = vals.filter(v => v >= threshold);
-      if (filtered.length > 1) {
-        const mn = Math.min(...filtered), mx = Math.max(...filtered);
-        if (mn > 0 && mx > mn) spreads.push((mx / mn - 1) * 100);
-      }
-    }
+    vals.forEach((_, i) => nSources.add(SRCIDS[i]));
   }
-  const avg = spreads.length ? spreads.reduce((a, b) => a + b, 0) / spreads.length : null;
-  const worst = spreads.length ? Math.max(...spreads) : null;
   el.innerHTML = `
     <div class="card"><h3>Top 10 模型</h3><div class="big">${top.length}</div><div class="sm">关注模型优先 · 来源覆盖排序</div></div>
     <div class="card"><h3>可比${METRIC_SHORT[metric] || '价格'}</h3><div class="big">${nPrices}</div><div class="sm">模型 × 来源 的有效价格</div></div>
-    <div class="card"><h3>平均价差</h3><div class="big" style="color:var(--warn)">${avg == null ? '—' : avg.toFixed(0) + '%'}</div><div class="sm">同模型多源最高/最低</div></div>
-    <div class="card"><h3>最大价差</h3><div class="big" style="color:var(--hi)">${worst == null ? '—' : worst.toFixed(0) + '%'}</div><div class="sm">Top 10 中最悬殊</div></div>`;
+    <div class="card"><h3>覆盖来源</h3><div class="big" style="color:var(--acc)">${nSources.size}</div><div class="sm">当前筛选下的数据源</div></div>`;
 }
 function renderGroupedBars(el, top, metric) {
   if (!el) return;
@@ -524,7 +503,7 @@ function renderWatch() {
       <div class="tw" style="max-height:none"><table><thead><tr><th class="l">模型</th>
       <th>模型官网价格</th>`;
     for (const sid of SRCIDS) h += `<th>${esc(srcLabel(sid))} 输入</th>`;
-    h += '<th>最低</th><th>最高</th><th>最大价差</th></tr></thead><tbody>';
+    h += '<th>最低</th><th>最高</th></tr></thead><tbody>';
     for (const m of items) {
       const vin = SRCIDS.map(s => valOf(m, s, 'input')).filter(v => v != null);
       const mn = vin.length ? Math.min(...vin) : null, mx = vin.length ? Math.max(...vin) : null;
@@ -543,8 +522,7 @@ function renderWatch() {
         h += `<td><span class="${cls}">${nf(v)}</span></td>`;
       }
       h += `<td class="${mn != null ? 'hl2' : ''}">${nf(mn)}</td>
-        <td class="${mx != null ? 'hl3' : ''}">${nf(mx)}</td>
-        <td>${(mn && mx && mx > mn) ? `<span class="pill hi">${((mx / mn - 1) * 100).toFixed(0)}%</span>` : '—'}</td></tr>`;
+        <td class="${mx != null ? 'hl3' : ''}">${nf(mx)}</td></tr>`;
     }
     h += '</tbody></table></div>';
   }
@@ -1629,7 +1607,6 @@ function buildAnalysis(rows, maxN) {
   L.push(head);
   const cmp = `与本站最低价相比：${stat.higher} 个偏高、${stat.equal} 个持平、${stat.lower} 个更低` +
     (stat.zero ? `、${stat.zero} 个本站最低为 $0（限免，无法算倍数）` : '') +
-    (avgD != null ? `；平均价差 ${pctWord(avgD)}` : '') +
     (stat.worst && stat.worst.d > 1 ? `，最贵的是 ${stat.worst.name}（${pctWord(stat.worst.d)}）` : '') + '。';
 
   const items = [];
