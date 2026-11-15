@@ -121,7 +121,8 @@ try:
     import build_site as B
     collected = C.SOURCES
     shown = [s["id"] for s in B.SOURCES]
-    ok("collect 与 build_site 源列表一致", collected == shown,
+    # 集合比较：顺序可以不同，但元素必须一致
+    ok("collect 与 build_site 源列表一致", set(collected) == set(shown),
        f"collect={collected} build={shown}")
     B._check_source_sync()   # 不一致会 SystemExit，跑到这里即通过
     ok("_check_source_sync() 正常返回", True)
