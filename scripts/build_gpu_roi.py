@@ -125,6 +125,8 @@ def gpu_market(snapshot):
           min_price = 8 卡整机（gpu_count>=8）中的最低 $/卡·h。"""
     groups = {}
     for l in (snapshot or {}).get("listings") or []:
+        if l.get("data_kind") != "real":
+            continue  # 只收实时API实采报价；mock 参考价不进收益测算（宁可待实测）
         name = l.get("gpu_model") or ""
         hit = next(((p, g, n, v) for p, g, n, v in GPU_NORM if p.search(name)), None)
         if not hit:
@@ -135,6 +137,8 @@ def gpu_market(snapshot):
             g["rows"].append(l)
     out = {}
     for gid, g in groups.items():
+        if not g["rows"]:
+            continue  # 过滤后无 real 报价的型号整组不进 market
         norm = []
         for r in g["rows"]:
             gc = r.get("gpu_count") or 1
@@ -162,7 +166,7 @@ def gpu_market(snapshot):
             "min_platform": best.get("platform"),
             "med_price": round(prices[len(prices) // 2], 4),
             "stock": nodes, "stock_cards": cards, "nodes8": nodes8,
-            "n_listings": len(norm), "platforms": sorted(byp),
+            "n_listings": len(norm), "n_real": len(g["rows"]), "platforms": sorted(byp),
             "by_platform": sorted(byp.values(), key=lambda x: x["min_price"]),
         }
     return out

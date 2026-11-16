@@ -383,3 +383,4 @@ td.stk{cursor:help}
 #roi-tbl .mven{font-size:10px}
 #roi-tbl td.tput{white-space:normal;min-width:64px}
 #roi-tbl td.tput .dim{font-size:9.5px}
+#p-gpu [data-tip]{cursor:help}

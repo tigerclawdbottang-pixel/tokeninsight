@@ -22,7 +22,7 @@ DEFAULT_DB = os.path.expanduser("~/Documents/TAI/gpu-radar/backend/gpu_radar.db"
 
 LISTING_COLS = ("id", "platform", "instance_id", "gpu_model", "gpu_count", "vram_gb",
                 "price_per_hour", "location", "direct_url", "available_stock",
-                "created_at", "updated_at")
+                "data_kind", "created_at", "updated_at")
 LEAD_COLS = ("id", "source_platform", "poster_name", "post_text", "extracted_gpu_model",
              "extracted_gpu_count", "extracted_price_desc", "contact_info",
              "direct_url", "raw_json_data", "created_at")

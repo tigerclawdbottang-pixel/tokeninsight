@@ -267,10 +267,17 @@ function gpuRowHtml(kind, r, lh, idx) {
     const stock = (r.available_stock || 0) > 0
       ? `<span class="pill n">✓ ${r.available_stock}</span>`
       : '<span class="pill hi">已租完</span>';
+    // 悬停展示抓取信息：平台/地区、实例规格、库存、台价与折算卡价、采集与更新时间、直达链接
+    const perCard = (r.gpu_count || 0) > 1 ? r.price_per_hour / r.gpu_count : null;
+    const tipGpu = `${r.platform} · ${r.location || '—'}\n`
+      + `实例：${r.gpu_count}×${r.gpu_model}（${r.vram_gb || '?'}GB VRAM）\n`
+      + `库存 ${r.available_stock || 0} 台 · $${Number(r.price_per_hour).toFixed(2)}/台·h${perCard ? ` ≈ $${perCard.toFixed(2)}/卡·h` : ''}\n`
+      + `采集 ${(r.created_at || '').slice(0, 16).replace('T', ' ')} · 更新 ${(r.updated_at || '').slice(0, 16).replace('T', ' ')}\n`
+      + `直达：${r.direct_url || '—'}`;
     return `<tr>
-      <td class="l"><span class="dotst" style="background:${gpuColor(GPU_PLATFORM_COLORS, r.platform)}"></span><span class="mname">${esc(r.platform)}</span></td>
+      <td class="l"><span class="dotst" style="background:${gpuColor(GPU_PLATFORM_COLORS, r.platform)}"></span><span class="mname">${esc(r.platform)}</span> ${r.data_kind === 'real' ? '<span class="pill n" style="font-size:9px">实时API</span>' : '<span class="pill mut" style="font-size:9px">参考</span>'}</td>
       <td class="l"><span class="mono">${esc(r.gpu_count)}x ${esc(r.gpu_model)}</span><br><span class="mven">${esc(r.vram_gb || '?')}GB VRAM</span></td>
-      <td><span class="pill price ${gpuPillCls(v, lh)}">$${Number(r.price_per_hour).toFixed(2)}/h</span></td>
+      <td><span class="pill price ${gpuPillCls(v, lh)}" data-tip="${esc(tipGpu)}">$${Number(r.price_per_hour).toFixed(2)}/h</span></td>
       <td class="l"><span class="mono">${esc(r.location || '—')}</span></td>
       <td>${stock}</td>
       <td class="l"><a class="link-btn" href="${esc(r.direct_url)}" target="_blank" rel="noreferrer noopener">前往租赁 ↗</a></td>
