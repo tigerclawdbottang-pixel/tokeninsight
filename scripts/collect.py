@@ -1076,3 +1076,98 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+def collect_deepinfra():
+    """DeepInfra models 页：卡片式 HTML。三级解析：通用表格 → 卡片正则 → next_f。"""
+    urls = ["https://deepinfra.com/models", "https://deepinfra.com/pricing"]
+    errs = []
+    for url in urls:
+        try:
+            body = fetch(url)
+        except Exception as e:
+            errs.append(f"{url}: {e}")
+            continue
+        # 1) 通用表格解析（若以后改版成表格，直接复用）
+        tables = _md_tables(body) or _html_tables(body)
+        if tables:
+            out = _gateway_rows(tables, "deepinfra")
+            if out:
+                return out, len(out)
+        # 2) 卡片正则：锚点 org/model + 其后的 Input/Output 价格
+        out = _deepinfra_cards(body)
+        if out:
+            return out, len(out)
+        # 3) next flight 里的价格字段
+        out = _deepinfra_flight(body)
+        if out:
+            return out, len(out)
+        errs.append(f"{url}: 未解析出模型")
+    raise RuntimeError(f"deepinfra: 全部候选源失败（{' / '.join(errs)}）")
+
+
+def _di_row(slug, name, inp, outp):
+    fam, ver = canonical(slug or name)
+    return dict(source="deepinfra", model_id=slug or name, model_name=name,
+                family=fam, version=ver, provider="",
+                input=inp, output=outp,
+                cache_read=None, cache_write=None,
+                list_input=None, list_output=None, discount=None,
+                context=None, modality="text",
+                unit="token", unit_price=None, list_unit_price=None, unit_discount=None)
+
+
+def _di_price(seg):
+    """从卡片片段里抠 Input/Output 价（$/1M token），返回 (inp, outp)。"""
+    mi = re.search(r"(?i)\binput\b[^\$]{0,30}\$\s*([\d.]+)", seg)
+    mo = re.search(r"(?i)\boutput\b[^\$]{0,30}\$\s*([\d.]+)", seg)
+    if mi or mo:
+        return (f(mi.group(1)) if mi else None, f(mo.group(1)) if mo else None)
+    # 退化：两个 $ 数字，第一个视为 input、第二个 output
+    nums = re.findall(r"\$\s*([\d.]+)\s*(?:per\s*1?M|/1?M|M\s*tok)", seg, re.I)
+    if len(nums) >= 2:
+        return f(nums[0]), f(nums[1])
+    return None, None
+
+
+def _deepinfra_cards(html):
+    out = []
+    # 按 org/model 形式的锚点切分
+    anchors = list(re.finditer(r"<a\b[^>]*href=\"(/[\w.\-]+/[\w.\-]+)\"[^>]*>", html))
+    for i, m in enumerate(anchors):
+        slug = m.group(1).lstrip("/")
+        end = anchors[i + 1].start() if i + 1 < len(anchors) else len(html)
+        seg = html[m.start():end]
+        # 名字：锚点后第一处标题/文本，去掉标签
+        nm = re.search(r"<h[1-4][^>]*>([^<]{2,80})</h[1-4]>", seg)
+        name = re.sub(r"<[^>]+>", "", nm.group(1)).strip() if nm else slug.split("/")[-1]
+        if len(name) < 2 or name.lower() in ("models", "pricing", "docs"):
+            continue
+        inp, outp = _di_price(seg)
+        if inp is None and outp is None:
+            continue
+        out.append(_di_row(slug, name, inp, outp))
+    return out
+
+
+def _deepinfra_flight(html):
+    """next_f payload 里的价格字段（多种键名尝试）。"""
+    out = []
+    for m in re.finditer(
+            r'"(?:model[_A-Z]?[iI]d|slug|model)"\s*:\s*"([\w.\-]+/[\w.\-]+)"', html):
+        slug = m.group(1)
+        seg = html[m.end():m.end() + 3000]
+        ni = re.search(r'"(?:input[_A-Z]?[pP]rice|price[_A-Z]?[iI]nput|promptPrice)"\s*:\s*"?([\d.]+)"?', seg)
+        no = re.search(r'"(?:output[_A-Z]?[pP]rice|price[_A-Z]?[oO]utput|completionPrice)"\s*:\s*"?([\d.]+)"?', seg)
+        if not (ni or no):
+            continue
+        name = slug.split("/")[-1]
+        out.append(_di_row(slug, name,
+                           f(ni.group(1)) if ni else None,
+                           f(no.group(1)) if no else None))
+    return out
+
+
+# 注册采集器（deepinfra 是专用解析函数，不走通用表格通道）
+COLLECTORS["deepinfra"] = collect_deepinfra
+if "deepinfra" not in SOURCES:
+    SOURCES.append("deepinfra")

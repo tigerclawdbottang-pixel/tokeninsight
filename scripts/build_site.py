@@ -101,6 +101,8 @@ SOURCES = [
      "color": "#14B8A6", "note": "TEE 可信执行环境，独立定价"},
     {"id": "string",           "label": "String AI",          "url": "https://www.string.ink/zh-cn/pricing/",
      "color": "#0EA5E9", "note": "国内中转站，含缓存读/写、阶梯价、实测可用率"},
+    {"id": "deepinfra",        "label": "DeepInfra",          "url": "https://deepinfra.com/models",
+     "color": "#84CC16", "note": "海外推理市场，按 1M token 输入/输出计价"},
 ]
 
 FX_FILE = os.path.join(ROOT, "data", "fx.json")
