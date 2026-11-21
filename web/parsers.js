@@ -260,7 +260,7 @@ function guessPrice(cell) {
   else s = s.replace(/,/g, '');
   if (!/^\d*\.?\d+$/.test(s)) return null;
   const v = parseFloat(s);
-  if (!isFinite(v) || v <= 0) return null;
+  if (!isFinite(v) || v < 0) return null;   // 显式 0 也是合法价格（限免）
   if (v <= 2000) return v;        // USD / 1M token 合理区间
   return null;                    // 更大的数字视作 token 数，忽略
 }
@@ -271,7 +271,7 @@ function isHeadCell(c) { return HEAD_WORDS.test(String(c == null ? '' : c)); }
 
 /* ---- 计费单位识别：上传表格可能写 ¥/千tokens、USD per 1M、元/百万token 等 ---- */
 const CUR_RULES = [[/(¥|￥|\brmb\b|\bcny\b|人民币|元)/i, 'CNY'], [/(\$|\busd\b|美元)/i, 'USD']];
-const PER_RULES = [[/(1\s*m|1,000,000|百万|million)/i, '1M'], [/(1\s*k|1,000|千|thousand)/i, '1K']];
+const PER_RULES = [[/(1\s*b|1,000,000,000|十亿|billion)/i, '1B'], [/(1\s*m|1,000,000|百万|million)/i, '1M'], [/(1\s*k|1,000|千|thousand)/i, '1K']];
 function readUnit(s) {
   const t = String(s == null ? '' : s);
   let currency = null, per = null;

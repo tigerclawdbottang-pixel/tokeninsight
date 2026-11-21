@@ -267,6 +267,42 @@ function renderDetail() {
         <td>${nf(it.input, 4)}</td><td>${nf(it.output, 4)}</td><td>${nf(it.cache_read, 4)}</td></tr>`;
     }
   }
+
+  // 阶梯价 / 缓存 TTL 明细（原文保留扩展信息，不参与主表比价）
+  function tierRows(sid, p) {
+    const lines = [];
+    for (const it of (p.versions || [p])) {
+      if (!it.tiers_json) continue;
+      try {
+        const t = JSON.parse(it.tiers_json);
+        if (Array.isArray(t)) {
+          for (const iv of t) {
+            if (!iv) continue;
+            const seg = iv.to ?? iv.max ?? iv.end ?? iv.upper ?? iv.limit ?? iv.threshold ?? '区间';
+            const rin = iv.input_usd_per_mtok ?? iv.input ?? iv.effective_input_usd_per_mtok;
+            const rout = iv.output_usd_per_mtok ?? iv.output ?? iv.effective_output_usd_per_mtok;
+            if (rin == null && rout == null) continue;
+            lines.push(`${esc(srcLabel(sid))} · 阶梯 ${esc(String(seg))}: 输入 ${rin ?? '—'} / 输出 ${rout ?? '—'}（${esc(it.model_id)}）`);
+          }
+        } else if (t && typeof t === 'object') {
+          const c5 = t.cache_write_5m_tokens, c1 = t.cache_write_1h_tokens, cb = t.cache_write_tokens;
+          const parts = [];
+          if (cb != null) parts.push(`缓存写 ${cb}`);
+          if (c5 != null) parts.push(`5min 缓存写 ${c5}`);
+          if (c1 != null) parts.push(`1h 缓存写 ${c1}`);
+          if (parts.length) lines.push(`${esc(srcLabel(sid))} · ${parts.join(' · ')}（${esc(it.model_id)}）`);
+        }
+      } catch (e) { /* 非标 tier 格式直接展示原文 */
+        lines.push(`${esc(srcLabel(sid))} · ${esc(String(it.tiers_json).slice(0, 160))}`);
+      }
+    }
+    return lines;
+  }
+
+  for (const sid of SRCIDS) {
+    const p = m.prices[sid]; if (!p) continue;
+    for (const ln of tierRows(sid, p)) v += `<tr><td colspan="4" class="note">${ln}</td></tr>`;
+  }
   v += '</tbody></table>';
   const o = m.official;
   let info = '';
@@ -661,7 +697,13 @@ function parseDiscount(cell, allowBareDecimal) {
     const r = parseFloat(s);
     if (isFinite(r) && r > 0 && r <= 1) return r;
   }
-  let m = s.match(/([\d.]+)折/) || s.match(/([\d.]+)%/);
+  let m = s.match(/([\d.]+)折/);
+  if (m) {
+    const v = parseFloat(m[1]);
+    if (!isFinite(v) || v <= 0 || v >= 200) return null;
+    return v < 10 ? v / 10 : v / 100;   // 7折=0.7，95折=0.95
+  }
+  m = s.match(/([\d.]+)%/);
   if (!m) return null;
   const v = parseFloat(m[1]);
   return (isFinite(v) && v > 0 && v < 200) ? v / 100 : null;
@@ -672,7 +714,7 @@ function parseDiscount(cell, allowBareDecimal) {
 function localUSD(v, unit) {
   if (v == null) return null;
   const per = unit && unit.per;
-  let x = v * (per === '1K' ? 1000 : per === '1' ? 1e6 : 1);
+  let x = v * (per === '1K' ? 1000 : per === '1B' ? 0.001 : per === '1' ? 1e6 : 1);
   if (unit && unit.currency === 'CNY') x *= (D.fx && D.fx.usd_per_cny) || 0.1408;
   return Math.round(x * 1e6) / 1e6;
 }
@@ -720,13 +762,9 @@ function pickPrices(cells, cols, unit) {
     if (p != null) nums.push(p);
   }
   if (!nums.length) return { in: null, out: null, list: null, listOut: null, disc, cache: null, cw: null };
-  const pos = nums.filter(n => n > 0);
-  if (!pos.length) return { in: 0, out: 0, list: 0, listOut: 0, disc, cache: null, cw: null };  // 限免
-  if (pos.length === 1) return { in: conv(apply(pos[0])), out: null, list: conv(pos[0]), listOut: null, disc, cache: null, cw: null };
-  const uniq = [...new Set(pos)].sort((a, b) => b - a);
-  let vin = uniq[0], vout = uniq[1] ?? null;
-  // output 通常 ≥ input，反了就交换
-  if (vin != null && vout != null && vin > vout) { const t = vin; vin = vout; vout = t; }
+  // 无表头：按列位置取值（第一个数=input、第二个=output），保留 0 价，不按大小交换
+  if (nums.length === 1) return { in: conv(apply(nums[0])), out: null, list: conv(nums[0]), listOut: null, disc, cache: null, cw: null };
+  const vin = nums[0], vout = nums[1];
   return { in: conv(apply(vin)), out: conv(apply(vout)), list: conv(vin), listOut: conv(vout), disc, cache: null, cw: null };
 }
 

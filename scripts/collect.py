@@ -346,6 +346,9 @@ def wokey_row(mdl):
         input=inp, output=outp,
         cache_read=best("cache_read_tokens"),
         cache_write=best("cache_write_tokens") or best("cache_write_5m_tokens"),
+        tiers_json=(json.dumps({k: best(k) for k in ("cache_write_tokens", "cache_write_5m_tokens", "cache_write_1h_tokens") if best(k) is not None},
+                               ensure_ascii=False)
+                    if any(best(k) is not None for k in ("cache_write_tokens", "cache_write_5m_tokens", "cache_write_1h_tokens")) else None),
         list_input=li, list_output=lo,
         discount=(pct_discount(inp, li) if unit == "token" else None),
         context=(mdl.get("architecture") or {}).get("context_length") or None,
@@ -668,8 +671,10 @@ def string_row(row, source_name):
         return []
     out = []
     for m in models:
-        model_id = m.lower()
-        fam, ver = canonical(model_id)
+        base_id = m.lower()
+        fam, ver = canonical(base_id)
+        # model_id 带渠道后缀避免同 ID 多渠道被 UNIQUE 覆盖；family/loose 用原始 id
+        model_id = base_id + (f"|{source_name}" if source_name else "")
         # 优先用 String AI 的中文显示名，没有再退回英文 id
         name = disp.get(m) or m
         out.append(dict(
@@ -680,6 +685,8 @@ def string_row(row, source_name):
             provider=source_name,
             input=inp, output=outp,
             cache_read=cr, cache_write=cw,
+            tiers_json=(json.dumps(row.get("intervals"), ensure_ascii=False)
+                        if row.get("intervals") else None),
             list_input=None, list_output=None,
             discount=(round((1 - mult) * 100, 2) if mult else None),
             context=None, modality="text",
@@ -954,8 +961,15 @@ CREATE TABLE IF NOT EXISTS alerts (
 """
 
 
+def ensure_columns(con):
+    cols = {r[1] for r in con.execute("PRAGMA table_info(prices)")}
+    if "tiers_json" not in cols:
+        con.execute("ALTER TABLE prices ADD COLUMN tiers_json TEXT")
+
+
 def init_db():
     con = sqlite3.connect(DB)
+    ensure_columns(con)
     con.executescript(SCHEMA)
     # 旧库升级：补上计价单位字段（默认 token）
     cols = {r[1] for r in con.execute("PRAGMA table_info(prices)")}
@@ -1031,14 +1045,14 @@ def main():
         con.execute("""INSERT OR REPLACE INTO prices
           (snapshot_date,source,model_id,model_name,family,loose,variant,version,provider,
            input,output,cache_read,cache_write,list_input,list_output,discount,context,modality,
-           unit,unit_price,list_unit_price,unit_discount)
-          VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+           unit,unit_price,list_unit_price,unit_discount,tiers_json)
+          VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
           (r["snapshot_date"], r["source"], r["model_id"], r["model_name"], r["family"],
            r["loose"], r["variant"], r["version"], r["provider"], r["input"], r["output"],
            r["cache_read"], r["cache_write"], r["list_input"], r["list_output"],
            r["discount"], r["context"], r["modality"],
            r.get("unit") or "token", r.get("unit_price"),
-           r.get("list_unit_price"), r.get("unit_discount")))
+           r.get("list_unit_price"), r.get("unit_discount"), r.get("tiers_json")))
     con.commit()
 
     # 原始快照留档：只替换本次成功的源，失败源/未运行的源保留当天已有数据。
@@ -1074,8 +1088,6 @@ def main():
     return 0 if all(s["status"] == "ok" for s in summary) else 1
 
 
-if __name__ == "__main__":
-    sys.exit(main())
 
 def collect_deepinfra():
     """DeepInfra models 页：卡片式 HTML。三级解析：通用表格 → 卡片正则 → next_f。"""
@@ -1091,15 +1103,15 @@ def collect_deepinfra():
         tables = _md_tables(body) or _html_tables(body)
         if tables:
             out = _gateway_rows(tables, "deepinfra")
-            if out:
+            if len(out) >= 5:
                 return out, len(out)
         # 2) 卡片正则：锚点 org/model + 其后的 Input/Output 价格
         out = _deepinfra_cards(body)
-        if out:
+        if len(out) >= 5:
             return out, len(out)
         # 3) next flight 里的价格字段
         out = _deepinfra_flight(body)
-        if out:
+        if len(out) >= 5:
             return out, len(out)
         errs.append(f"{url}: 未解析出模型")
     raise RuntimeError(f"deepinfra: 全部候选源失败（{' / '.join(errs)}）")
@@ -1140,6 +1152,7 @@ def _deepinfra_cards(html):
         # 名字：锚点后第一处标题/文本，去掉标签
         nm = re.search(r"<h[1-4][^>]*>([^<]{2,80})</h[1-4]>", seg)
         name = re.sub(r"<[^>]+>", "", nm.group(1)).strip() if nm else slug.split("/")[-1]
+        name = re.sub(r"\s*\d+(?:\.\d+)?\s*%\s*off\b.*$", "", name, flags=re.I).strip()
         if len(name) < 2 or name.lower() in ("models", "pricing", "docs"):
             continue
         inp, outp = _di_price(seg)
@@ -1169,5 +1182,9 @@ def _deepinfra_flight(html):
 
 # 注册采集器（deepinfra 是专用解析函数，不走通用表格通道）
 COLLECTORS["deepinfra"] = collect_deepinfra
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 if "deepinfra" not in SOURCES:
     SOURCES.append("deepinfra")

@@ -91,9 +91,14 @@ def main():
     pub_issues = 0
     if os.path.exists(DATA):
         data = json.load(open(DATA, encoding="utf-8"))
+        # 与发布端一致：每个源用各自最新有数据日期，而不是全局今天
+        latest_by_src = {}
+        for r in c.execute("SELECT source, MAX(snapshot_date) d FROM prices GROUP BY source"):
+            latest_by_src[r["source"]] = r["d"]
         dbmap = {}
-        for r in c.execute("SELECT source,loose,input,output FROM prices WHERE snapshot_date=?", (today,)):
-            dbmap.setdefault((r["source"], r["loose"]), []).append((r["input"], r["output"]))
+        for src, d in latest_by_src.items():
+            for r in c.execute("SELECT loose,input,output FROM prices WHERE source=? AND snapshot_date=?", (src, d)):
+                dbmap.setdefault((src, r["loose"]), []).append((r["input"], r["output"]))
         for m in data["models"]:
             for sid, p in m["prices"].items():
                 vals = dbmap.get((sid, m["loose"]))

@@ -1,59 +1,33 @@
 # 模型价格每日复核报告 — 2026-11-15
 
-生成时间：2026-11-16T10:10:43　|　快照日期：2026-11-15（对比基准：2026-11-14）
+生成时间：2026-11-21T14:57:41　|　快照日期：2026-11-15（对比基准：2026-11-14）
 
 ## 结论
 
-- 高优先级 **328** 项 / 警告 **69** 项 / 信息 **388** 项
-- 发布价与采集价一致性问题：**312** 项
+- 高优先级 **16** 项 / 警告 **69** 项 / 信息 **388** 项
+- 发布价与采集价一致性问题：**0** 项
 - **需要人工/联网核对**：见下方「待核对清单」
 
-## 高优先级差异（需联网核对）（328 项）
+## 高优先级差异（需联网核对）（16 项）
 
 | 级别 | 类型 | 源 | 模型 | 说明 |
 |---|---|---|---|---|
 | high | 价格异动 | OpenRouter | `qwen/qwen3.5-9b` | input 0.16999999999999998 → 0.041999999999999996 (-75.3%) |
 | high | 价格异动 | OpenRouter | `qwen/qwen3.5-9b` | output 0.25 → 0.062 (-75.2%) |
 | high | 价格异动 | OpenRouter | `qwen/qwen3.5-9b` | cache_read 0.153 → 0.038000000000000006 (-75.2%) |
-| high | 发布不一致 | Fireworks | `deepseekv41flash` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `deepseekv4pro` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `glm53` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `glm53flash` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `kimik3` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `kimik31pro` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `minimaxm31flash` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen38max` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `minimaxm2` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `deepseekv4flash` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `deepseekv32` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `kimik26` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen3827b` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `glm52` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `kimik25` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `kimik27code` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen3535ba3b` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen3627b` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen3635ba3b` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen37plus` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen3vl30ba3binstruct` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `deepseekr1` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `glm45air` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `glm45v` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `glm5` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `glm51` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `minimaxm25` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `minimaxm27` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `minimaxm3` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen314b` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen332b` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen35122ba10b` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen3527b` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen35397ba17b` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen359b` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen36plus` | 页面有价但库中无对应记录 |
-| high | 发布不一致 | Fireworks | `qwen37max` | 页面有价但库中无对应记录 |
-
-_（仅显示前 40 项，共 328 项）_
+| high | 采集失败 | wafer | `` | RuntimeError: wafer: 未找到任何模型（页面结构可能已变） |
+| high | 采集失败 | wafer | `` | RuntimeError: wafer: 未找到任何模型（页面结构可能已变） |
+| high | 采集失败 | Fireworks | `` | HTTPError: HTTP Error 500: Internal Server Error |
+| high | 采集失败 | wafer | `` | RuntimeError: wafer: 未找到任何模型（页面结构可能已变） |
+| high | 采集失败 | Venice AI | `` | RuntimeError: venice: 所有候选源均失败（https://raw.githubusercontent.com/veniceai/api-docs/main/overview/pricing.mdx: HTTPError: HTTP Error 404: Not Found / https://raw.githubusercontent.com/veniceai/api-docs/master/overview/pricing.mdx: HTTPError: HTTP Error 404: Not Found / https://docs.venice.ai/overview/pricing.md: 有表格但无模型 / https://docs.venice.ai/overview/pricing: 无表格） |
+| high | 采集失败 | wafer | `` | RuntimeError: wafer: 未找到任何模型（页面结构可能已变） |
+| high | 采集失败 | wafer | `` | RuntimeError: wafer: 未找到任何模型（页面结构可能已变） |
+| high | 采集失败 | wafer | `` | RuntimeError: wafer: 未找到任何模型（仅拿到 25010 bytes，疑似被骨架屏截断） |
+| high | 采集失败 | Fireworks | `` | HTTPError: HTTP Error 500: Internal Server Error |
+| high | 采集失败 | Venice AI | `` | RuntimeError: venice: 所有候选源均失败（https://raw.githubusercontent.com/veniceai/api-docs/main/overview/pricing.mdx: HTTPError: HTTP Error 404: Not Found / https://raw.githubusercontent.com/veniceai/api-docs/master/overview/pricing.mdx: HTTPError: HTTP Error 404: Not Found / https://docs.venice.ai/overview/pricing.md: 有表格但无模型 / https://docs.venice.ai/overview/pricing: 无表格） |
+| high | 采集失败 | Venice AI | `` | RuntimeError: venice: 所有候选源均失败（https://docs.venice.ai/models/overview.md: 有表格但无模型 / https://docs.venice.ai/models/overview: 无表格 / https://docs.venice.ai/overview/pricing.md: 有表格但无模型 / https://docs.venice.ai/overview/pricing: 无表格） |
+| high | 采集失败 | Fireworks | `` | HTTPError: HTTP Error 500: Internal Server Error |
+| high | 采集量骤降 | Fireworks | `` | 模型数由 318 降至 0（-100%） |
 
 
 ## 警告（69 项）
@@ -134,20 +108,16 @@ _（仅显示前 15 项，共 388 项）_
 1. **OpenRouter** `qwen/qwen3.5-9b` — input 0.16999999999999998 → 0.041999999999999996 (-75.3%)
 2. **OpenRouter** `qwen/qwen3.5-9b` — output 0.25 → 0.062 (-75.2%)
 3. **OpenRouter** `qwen/qwen3.5-9b` — cache_read 0.153 → 0.038000000000000006 (-75.2%)
-4. **Fireworks** `deepseekv41flash` — 页面有价但库中无对应记录
-5. **Fireworks** `deepseekv4pro` — 页面有价但库中无对应记录
-6. **Fireworks** `glm53` — 页面有价但库中无对应记录
-7. **Fireworks** `glm53flash` — 页面有价但库中无对应记录
-8. **Fireworks** `kimik3` — 页面有价但库中无对应记录
-9. **Fireworks** `kimik31pro` — 页面有价但库中无对应记录
-10. **Fireworks** `minimaxm31flash` — 页面有价但库中无对应记录
-11. **Fireworks** `qwen38max` — 页面有价但库中无对应记录
-12. **Fireworks** `minimaxm2` — 页面有价但库中无对应记录
-13. **Fireworks** `deepseekv4flash` — 页面有价但库中无对应记录
-14. **Fireworks** `deepseekv32` — 页面有价但库中无对应记录
-15. **Fireworks** `kimik26` — 页面有价但库中无对应记录
-16. **Fireworks** `qwen3827b` — 页面有价但库中无对应记录
-17. **Fireworks** `glm52` — 页面有价但库中无对应记录
-18. **Fireworks** `kimik25` — 页面有价但库中无对应记录
-19. **Fireworks** `kimik27code` — 页面有价但库中无对应记录
-20. **Fireworks** `qwen3535ba3b` — 页面有价但库中无对应记录
+4. **wafer** `` — RuntimeError: wafer: 未找到任何模型（页面结构可能已变）
+5. **wafer** `` — RuntimeError: wafer: 未找到任何模型（页面结构可能已变）
+6. **Fireworks** `` — HTTPError: HTTP Error 500: Internal Server Error
+7. **wafer** `` — RuntimeError: wafer: 未找到任何模型（页面结构可能已变）
+8. **Venice AI** `` — RuntimeError: venice: 所有候选源均失败（https://raw.githubusercontent.com/veniceai/api-docs/main/overview/pricing.mdx: HTTPError: HTTP Error 404: Not Found / https://raw.githubusercontent.com/veniceai/api-docs/master/overview/pricing.mdx: HTTPError: HTTP Error 404: Not Found / https://docs.venice.ai/overview/pricing.md: 有表格但无模型 / https://docs.venice.ai/overview/pricing: 无表格）
+9. **wafer** `` — RuntimeError: wafer: 未找到任何模型（页面结构可能已变）
+10. **wafer** `` — RuntimeError: wafer: 未找到任何模型（页面结构可能已变）
+11. **wafer** `` — RuntimeError: wafer: 未找到任何模型（仅拿到 25010 bytes，疑似被骨架屏截断）
+12. **Fireworks** `` — HTTPError: HTTP Error 500: Internal Server Error
+13. **Venice AI** `` — RuntimeError: venice: 所有候选源均失败（https://raw.githubusercontent.com/veniceai/api-docs/main/overview/pricing.mdx: HTTPError: HTTP Error 404: Not Found / https://raw.githubusercontent.com/veniceai/api-docs/master/overview/pricing.mdx: HTTPError: HTTP Error 404: Not Found / https://docs.venice.ai/overview/pricing.md: 有表格但无模型 / https://docs.venice.ai/overview/pricing: 无表格）
+14. **Venice AI** `` — RuntimeError: venice: 所有候选源均失败（https://docs.venice.ai/models/overview.md: 有表格但无模型 / https://docs.venice.ai/models/overview: 无表格 / https://docs.venice.ai/overview/pricing.md: 有表格但无模型 / https://docs.venice.ai/overview/pricing: 无表格）
+15. **Fireworks** `` — HTTPError: HTTP Error 500: Internal Server Error
+16. **Fireworks** `` — 模型数由 318 降至 0（-100%）

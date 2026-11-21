@@ -290,6 +290,18 @@ def load_gpu():
     return g
 
 
+
+def _fix_ci_discount(rows):
+    """CI 三字段（折后/目录/折扣）自洽校验：偏差>1.5pp 时用两价反算覆盖折扣，避免误导。"""
+    for r in rows:
+        if r.get("source") != "cheaperinference":
+            continue
+        li, act, dis = r.get("list_input"), r.get("input"), r.get("discount")
+        if li and act is not None and dis is not None:
+            real = (1 - act / li) * 100
+            if abs(real - dis) > 1.5:
+                r["discount"] = round(real, 2)
+
 def main():
     _check_source_sync()
     import build_gpu_roi  # ROI 数据包（内嵌 tab 与独立页共用）
@@ -319,6 +331,8 @@ def main():
     # 按 (loose, source, 该源最新日期) 取数据，而不是全局统一日期
     rows = []
     for src, d in src_latest.items():
+        if src not in {s["id"] for s in SOURCES}:
+            continue  # 停用/历史来源不参与聚合（避免 ghost 模型组与虚高 n_ver）
         rows.extend(c.execute(
             "SELECT * FROM prices WHERE snapshot_date=? AND source=? ORDER BY loose, input",
             (d, src)).fetchall())
@@ -347,6 +361,7 @@ def main():
             unit_price=r6(gv(r, "unit_price")),
             list_unit_price=r6(gv(r, "list_unit_price")),
             unit_discount=r6(gv(r, "unit_discount")),
+            tiers_json=r["tiers_json"] if "tiers_json" in r.keys() else None,
         )
         if cur is None:
             g["by_source"][src] = {"best": rec, "versions": [rec]}
@@ -470,15 +485,21 @@ def main():
         "SELECT snapshot_date, source, loose, input, output, cache_read, list_input FROM prices "
         "WHERE snapshot_date>=? ORDER BY snapshot_date", (dates[max(0, len(dates) - 120)],)).fetchall()
     hist_daily = defaultdict(lambda: defaultdict(dict))       # date -> source -> loose -> price
+    fields_daily = defaultdict(lambda: defaultdict(dict))   # date -> source -> loose -> 全指标
     for r in hist_rows:
         d = hist_daily[r["snapshot_date"]][r["source"]]
         prev = d.get(r["loose"])
         cur = r["input"] if r["input"] is not None else None
         if prev is None or (cur is not None and cur < prev):
             d[r["loose"]] = cur
+        fields_daily[r["snapshot_date"]][r["source"]][r["loose"]] = {
+            k: r[k] for k in ("input", "output", "cache_read", "cache_write", "list_input", "list_output")
+            if k in r.keys()
+        }
     history = {
         "dates": sorted(hist_daily.keys()),
         "series": {d: {s: dict(v) for s, v in srcs.items()} for d, srcs in hist_daily.items()},
+        "series_fields": {d: {s: dict(v) for s, v in srcs.items()} for d, srcs in fields_daily.items()},
     }
 
     # 每个源只取当天最后一次运行的记录（同日重复运行时会积累多条 runs）

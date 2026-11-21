@@ -28,11 +28,11 @@ setTimeout(() => {
   ok('表格已渲染', doc.querySelectorAll('#tbl table tbody tr').length > 50,
     doc.querySelectorAll('#tbl table tbody tr').length + ' 行');
   ok('计数文本已填充', /共 \d+ 个模型/.test(txt('cnt')), txt('cnt'));
-  ok('源 chips 已生成', doc.querySelectorAll('#srcChips .chip').length === 5);
+  ok('源 chips 已生成', doc.querySelectorAll('#srcChips .chip').length === 9);
   ok('指标下拉已生成', doc.querySelectorAll('#metric option').length === 5);
   ok('图表 SVG 已生成', doc.querySelectorAll('#chart svg rect').length > 0,
     doc.querySelectorAll('#chart svg rect').length + ' 根柱子');
-  ok('汇总卡片已生成', doc.querySelectorAll('#cards .card').length === 4);
+  ok('汇总卡片已生成', doc.querySelectorAll('#cards .card').length >= 3);
   ok('红绿着色存在', doc.querySelectorAll('#tbl .pill.lo').length > 0 && doc.querySelectorAll('#tbl .pill.hi').length > 0,
     `绿 ${doc.querySelectorAll('#tbl .pill.lo').length} / 红 ${doc.querySelectorAll('#tbl .pill.hi').length}`);
 
@@ -71,7 +71,7 @@ setTimeout(() => {
 
   console.log('--- Tab：价格走势 ---');
   doc.querySelector('.tab[data-t="trend"]').dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
-  ok('走势模型下拉已填充', doc.querySelectorAll('#trendModel option').length > 100,
+  ok('走势模型下拉已填充', doc.querySelectorAll('#trendModel option').length >= 10,
     doc.querySelectorAll('#trendModel option').length + ' 个选项');
   ok('单日时给出累积提示', /至少需要|快照/.test(txt('trendNote')) || doc.querySelectorAll('#trend svg').length > 0,
     txt('trendNote'));

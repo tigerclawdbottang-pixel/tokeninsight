@@ -60,10 +60,16 @@ jobs:
           python3 scripts/build_site.py
           python3 scripts/verify.py || true
 
+      - name: Install test deps (jsdom)
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
       - name: Logic tests
         run: |
           node scripts/test_parsers.js
           node scripts/test_llm.js
+          node scripts/smoke.js
+          node scripts/test_upload_tier.js
+          node scripts/test_official_col.js
           python3 scripts/test_media.py
           python3 scripts/test_gateway_parsers.py
 
