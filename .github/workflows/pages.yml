@@ -61,7 +61,7 @@ jobs:
           python3 scripts/verify.py || true
 
       - name: Install test deps (jsdom)
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm install --ignore-scripts --no-audit --no-fund
 
       - name: Logic tests
         run: |
